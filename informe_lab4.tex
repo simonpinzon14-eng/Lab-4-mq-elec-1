@@ -8,7 +8,7 @@
 \usepackage{icomma}
 \usepackage[output-decimal-marker={,},group-minimum-digits=5,per-mode=symbol]{siunitx}
 \DeclareSIUnit{\VAr}{VAr}
-\DeclareSIUnit{\rpm}{r/min}
+\DeclareSIUnit{\rpm}{min^{-1}}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.17}
 \usepackage[caption=false,font=footnotesize]{subfig}
@@ -18,7 +18,7 @@
 \usepackage{xcolor}
 \usepackage{xurl}
 \usepackage{hyperref}
-\hypersetup{colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue!50!black}
+\hypersetup{colorlinks=false,pdfborder={0 0 0}}
 
 % ---------------------------------------------------------------------------
 % Interruptor de borrador: en true muestra las notas internas (en rojo).
@@ -27,11 +27,9 @@
 \newcommand{\nota}[1]{\ifborrador{\color{red}\footnotesize[#1]}\fi}
 % ---------------------------------------------------------------------------
 
-% Valores generados por los scripts de calculos/
 \input{calculos/salidas/previos.tex}
 \input{calculos/salidas/res_valores.tex}
 
-% Parametros de flotantes para aprovechar mejor las paginas
 \renewcommand{\topfraction}{0.9}
 \renewcommand{\dbltopfraction}{0.9}
 \renewcommand{\textfraction}{0.08}
@@ -49,195 +47,339 @@
 
 \begin{document}
 
-\title{Preinforme de Laboratorio: Práctica N.º 4 --- Máquinas de inducción}
+\title{Preinforme de Laboratorio: Práctica N\textsuperscript{o}~4---Máquinas de Inducción}
 
-\author{
-\IEEEauthorblockN{Simón David Pinzón Navarro, Luisa Fernanda Marín Romero, Juan Andrés Merchán Palencia,\\
+\author{\IEEEauthorblockN{Simón David Pinzón Navarro, Luisa Fernanda Marín Romero, Juan Andrés Merchán Palencia,\\
 Johan Emanuel Pino Giraldo y Cristian Manuel Marquez Luna}
-\IEEEauthorblockA{Programa de Ingeniería Eléctrica, Universidad del Norte, Barranquilla, Colombia}
-}
+\IEEEauthorblockA{Programa de Ingeniería Eléctrica\\
+Universidad del Norte\\
+Barranquilla, Colombia}}
 
 \maketitle
 
 \begin{abstract}
-Este preinforme prepara la Práctica N.º 4 de Máquinas Eléctricas I, dedicada a los motores de inducción trifásicos. Se presentan las máquinas del banco físico (motor de jaula de ardilla De Lorenzo DL~1021 y motor de rotor devanado), el análisis de sus datos de placa, una aplicación industrial, los cálculos previos que pide la guía y la descripción de las conexiones de todas las actividades. Cada actividad se reprodujo en el simulador LVSIM-EMS con el motor de jaula LabVolt 8221, un dinamómetro 8960 y la interfaz de adquisición 9063. En el simulador la resistencia por fase resultó de \SI{14,0}{\ohm} (con \Rvi~\si{\ohm} por el método voltímetro-amperímetro); en vacío a \SI{120}{V} en delta el motor absorbe \PceroNom~\si{W}, de los cuales \PcuNom~\si{W} son pérdidas en el cobre del estator, \Pmec~\si{W} pérdidas mecánicas y \PfeNom~\si{W} pérdidas en el hierro; y con corriente nominal entrega \CnomPout~\si{W} a \Cnomn~\si{\rpm}, con deslizamiento de \Cnoms~\% y eficiencia de \Cnometa~\%. Los resultados confirman que el sentido de giro depende de la secuencia de fases, que la conexión delta a \SI{120}{V} equivale a la estrella a \SI{208}{V} y que el deslizamiento crece con la carga y al reducir la tensión.
+Este preinforme prepara la Práctica 4 de Máquinas Eléctricas I, dedicada a los motores de inducción trifásicos: el motor de jaula de ardilla De Lorenzo DL\,1021 (\SI{1,1}{kW}, \num{220}/\SI{380}{V} $\Delta$/Y, \SI{2870}{\rpm} a \SI{50}{Hz}) y un motor de rotor devanado. Se presentan los fundamentos teóricos, el análisis de la placa de características, una aplicación práctica, los cálculos previos de cada actividad y la descripción de las conexiones. De los datos de catálogo se infiere que el DL\,1021 es una máquina de dos polos que a \SI{60}{Hz} girará cerca de \SI{3440}{\rpm} con carga nominal, con un par nominal de unos \SI{3,05}{N.m} y una resistencia por fase esperada entre \num{2,7} y \SI{5,3}{\ohm}. Las actividades se reprodujeron en LVSIM--LabVolt con el motor de jaula 8221, un dinamómetro como freno y la interfaz de adquisición 9063. La simulación confirmó que el sentido de giro depende de la secuencia de fases, que la conexión en delta a \SI{120}{V} equivale a la estrella a \SI{208}{V} y que el deslizamiento crece con la carga y al bajar la tensión. En vacío, la potencia de \PceroNom~\si{W} se separó en \PcuNom~\si{W} de cobre, \Pmec~\si{W} mecánicas y \PfeNom~\si{W} en el hierro. Con corriente nominal el motor entregó \CnomPout~\si{W}, con un deslizamiento de \Cnoms~\% y una eficiencia de \Cnometa~\%.
 \end{abstract}
 
 \begin{IEEEkeywords}
-motor de inducción, jaula de ardilla, rotor devanado, deslizamiento, prueba de vacío, prueba de carga, método de dos vatímetros, LVSIM-EMS.
+motor de inducción, jaula de ardilla, rotor devanado, deslizamiento, prueba de vacío, prueba de carga, LVSIM--LabVolt
 \end{IEEEkeywords}
 
 % ===========================================================================
 \section{Introducción}
-El motor de inducción trifásico es la máquina eléctrica más usada en la industria por su construcción robusta, su bajo costo y su mantenimiento mínimo \cite{chapman,fitzgerald}. Su principio es el de un transformador rotativo: el estator, alimentado con un sistema trifásico, crea un campo magnético giratorio que induce tensiones y corrientes en el rotor; la interacción entre esas corrientes y el campo produce el par que hace girar el eje \cite{guia,diapositivas}.
+El motor de inducción convierte energía eléctrica en mecánica sin necesidad de alimentar el rotor. El estator, conectado a una red trifásica, crea un campo magnético que gira a una velocidad fijada por la frecuencia; ese campo induce corrientes en el rotor y la interacción entre ambos produce el par. Su construcción robusta, su bajo costo y su mantenimiento mínimo lo han convertido en la máquina más usada en la industria: mueve bombas, ventiladores, compresores, bandas transportadoras y máquinas herramienta \cite{chapman,fraile}.
 
-La Práctica N.º 4 \cite{guia} tiene dos actividades: la exploración de los motores (medida de resistencia de los devanados y puesta en operación de un motor de rotor devanado y uno de jaula de ardilla, en estrella y en delta) y las pruebas de vacío y de carga de un motor de jaula conectado en delta. Este documento prepara esa práctica: reseña de las máquinas, análisis de placa, cálculos previos, conexiones, montajes y simulación de cada actividad en LVSIM-EMS \cite{lvsim}. Los datos del laboratorio físico se analizarán en el informe final.
+La Práctica 4 estudia estos motores en dos actividades \cite{guia}. La primera es la exploración de los motores de rotor devanado y de jaula de ardilla: medida de la resistencia de los devanados y puesta en operación en estrella y en delta, observando el sentido de giro y la velocidad con tensión reducida. La segunda son las pruebas de vacío y de carga del motor de jaula conectado en delta, con las que se separan las pérdidas y se obtienen las características de operación y la eficiencia.
+
+Este documento reúne los fundamentos para interpretar los ensayos, describe los equipos, analiza la placa del motor y desarrolla los cálculos previos. También documenta las conexiones y la simulación de cada actividad, para identificar antes del montaje físico los valores esperados y los límites que no se deben superar.
 
 % ===========================================================================
 \section{Objetivos}
-Según la guía \cite{guia}, la práctica busca:
+\subsection{Objetivo general}
+Analizar el comportamiento de los motores de inducción trifásicos de jaula de ardilla y de rotor devanado mediante sus datos de placa, cálculos previos, simulaciones en LVSIM--LabVolt y ensayos de laboratorio, con el fin de determinar sus pérdidas, sus características de operación y su eficiencia.
+
+\subsection{Objetivos específicos}
 \begin{itemize}
-\item Tener un acercamiento general a los motores de inducción y verificar sus aspectos constructivos y características básicas.
-\item Medir la resistencia del estator como base para calcular las pérdidas en el cobre y las pérdidas rotacionales.
-\item Determinar las pérdidas mecánicas (fricción y ventilación) y en el hierro (histéresis y corrientes parásitas), y comprobar que su suma con las del cobre es la potencia absorbida en vacío.
-\item Determinar las características de operación, la regulación de velocidad y la eficiencia de un motor de inducción trifásico.
-\item Estimar los parámetros del circuito equivalente del motor.
+\item Medir la resistencia de los devanados del estator de ambos motores y verificar que las tres fases sean iguales.
+\item Poner en operación los motores en estrella y en delta, y observar el efecto del rotor abierto, de la secuencia de fases y de la tensión de alimentación.
+\item Separar las pérdidas en el cobre, en el hierro y mecánicas a partir de la prueba de vacío, y comprobar que su suma es la potencia absorbida en vacío.
+\item Obtener las curvas de velocidad, corriente, eficiencia y deslizamiento del motor de jaula en la prueba de carga, y calcular su regulación de velocidad.
+\item Estimar los parámetros de la rama de magnetización del circuito equivalente.
+\item Documentar los montajes en LVSIM--LabVolt y en el banco físico, verificando que ningún ensayo supere los límites nominales de las máquinas.
 \end{itemize}
-En este preinforme se agregan dos objetivos de preparación: anticipar con cálculos y simulación los valores esperados en el banco y fijar los límites que no se deben superar.
 
 % ===========================================================================
 \section{Reseña y fundamentos teóricos}
 
-\subsection{Campo giratorio y velocidad sincrónica}
-Tres devanados desplazados \SI{120}{\degree} eléctricos y alimentados con corrientes trifásicas balanceadas producen un campo de amplitud constante que gira a la velocidad sincrónica \cite{chapman}:
+\subsection{Antecedentes e importancia del motor de inducción}
+El motor de inducción trifásico fue desarrollado a finales del siglo XIX, a partir del campo magnético giratorio que estudiaron Galileo Ferraris y Nikola Tesla. Desde entonces es el accionamiento estándar de la industria: la mayor parte de la energía eléctrica que consume el sector industrial se convierte en trabajo mecánico en motores de este tipo \cite{chapman,fraile}. Su ventaja sobre las máquinas de corriente continua y sincrónicas es que el rotor no necesita alimentación externa: las corrientes del rotor se inducen desde el estator, como en un transformador. Por eso se le llama también \emph{transformador rotativo} \cite{diapositivas}.
+
+\subsection{Campo magnético giratorio}
+Tres devanados desplazados \SI{120}{\degree} eléctricos en el estator y alimentados con corrientes trifásicas balanceadas producen un campo de amplitud constante que gira a la velocidad sincrónica \cite{chapman}:
 \begin{equation}
 n_s=\frac{120\,f_e}{P},
 \label{eq:ns}
 \end{equation}
-donde $f_e$ es la frecuencia de la red y $P$ el número de polos. A \SI{60}{Hz}, una máquina de 2 polos tiene $n_s=\SI{3600}{\rpm}$ y una de 4 polos, \SI{1800}{\rpm} \cite{diapositivas}. El sentido del campo lo fija la secuencia de fases: al intercambiar dos líneas se invierte la secuencia y, con ella, el sentido de giro.
+donde $f_e$ es la frecuencia eléctrica y $P$ el número de polos. A \SI{60}{Hz}, una máquina de dos polos tiene $n_s=\SI{3600}{\rpm}$, y una de cuatro, \SI{1800}{\rpm} \cite{diapositivas}. El sentido de giro del campo lo fija la secuencia de fases. Si se intercambian dos líneas de alimentación, la secuencia pasa de $abc$ a $acb$ y el campo, y con él el rotor, gira en sentido contrario.
 
 \subsection{Par inducido y deslizamiento}
-El campo del estator $\mathbf{B}_S$ corta los conductores del rotor e induce en ellos $e=(\mathbf{v}\times\mathbf{B})\cdot\mathbf{l}$. Si el circuito del rotor está cerrado circula una corriente que crea el campo $\mathbf{B}_R$, y el par es $\tau_{ind}=k\,\mathbf{B}_R\times\mathbf{B}_S$ \cite{diapositivas}. Para que haya tensión inducida debe existir movimiento relativo entre el campo y el rotor; por eso el rotor nunca alcanza $n_s$. Esa diferencia se mide con el deslizamiento:
+El campo del estator $\mathbf{B}_S$ corta las barras del rotor y en cada una induce un voltaje \cite{diapositivas}
+\begin{equation}
+e_{ind}=(\mathbf{v}\times\mathbf{B})\cdot\mathbf{l},
+\label{eq:eind}
+\end{equation}
+donde $\mathbf{v}$ es la velocidad de la barra respecto al campo. Si el circuito del rotor está cerrado, circula una corriente que crea un campo $\mathbf{B}_R$, y el par inducido es
+\begin{equation}
+\tau_{ind}=k\,\mathbf{B}_R\times\mathbf{B}_S .
+\label{eq:tind}
+\end{equation}
+Para que haya voltaje inducido debe existir movimiento relativo entre el campo y el rotor. Si el rotor girara a $n_s$, sus barras quedarían quietas respecto al campo, no habría corriente ni par, y la fricción lo frenaría. Por eso un motor de inducción nunca opera a velocidad sincrónica. La diferencia se expresa con el deslizamiento:
 \begin{equation}
 s=\frac{n_s-n_m}{n_s},
 \label{eq:s}
 \end{equation}
-y la frecuencia de las corrientes del rotor es
+y la frecuencia de las corrientes del rotor es proporcional a él:
 \begin{equation}
 f_r=s\,f_e .
 \label{eq:fr}
 \end{equation}
-Con el rotor bloqueado ($s=1$) la frecuencia y la tensión del rotor son máximas; a velocidad sincrónica ($s=0$) ambas serían nulas y no habría par \cite{diapositivas}. Si una máquina externa impulsa el rotor por encima de $n_s$, el deslizamiento se vuelve negativo, el par se invierte y la máquina trabaja como generador, aunque sigue consumiendo potencia reactiva para magnetizarse \cite{generador}.
+Con el rotor bloqueado ($s=1$) la frecuencia y el voltaje del rotor son máximos e iguales a los de un transformador; a medida que el motor acelera ambos disminuyen, y a velocidad sincrónica serían nulos \cite{diapositivas}. Si una máquina externa impulsa el rotor por encima de $n_s$, el deslizamiento se vuelve negativo, el par se invierte y la máquina trabaja como generador. Aun así sigue absorbiendo potencia reactiva para magnetizarse \cite{generador}.
 
-\subsection{Rotor de jaula y rotor devanado}
-El rotor de jaula de ardilla está formado por barras cortocircuitadas en sus extremos por anillos; no tiene bornes accesibles. El rotor devanado tiene un devanado trifásico, normalmente en estrella, cuyos terminales salen por anillos rozantes y escobillas \cite{chapman,guia}. Con los terminales del rotor abiertos no circula corriente rotórica y no hay par: el motor se comporta como un transformador en vacío y en los anillos aparece la tensión inducida a rotor bloqueado $E_{R0}$. Al cortocircuitarlos, el motor arranca como uno de jaula. El acceso al rotor permite insertar resistencias para mejorar el par de arranque y limitar la corriente, a costa de mayores pérdidas \cite{chapman,generador}.
+\subsection{Constitución: rotor de jaula y rotor devanado}
+El estator es un núcleo de chapas de acero al silicio con un devanado trifásico distribuido en ranuras, cuyos seis extremos salen a la placa de bornes para conectarlo en estrella o en delta. El rotor puede ser de dos tipos \cite{chapman,fraile}:
+\begin{itemize}
+\item \emph{Jaula de ardilla}: barras de aluminio o cobre alojadas en las ranuras del rotor y cortocircuitadas en sus extremos por anillos. No tiene conexión externa.
+\item \emph{Rotor devanado}: un devanado trifásico, normalmente en estrella, cuyos terminales salen por anillos rozantes y escobillas. Permite medir el voltaje inducido en el rotor e insertar resistencias externas para mejorar el arranque y variar la velocidad, a costa de mayor costo y mantenimiento.
+\end{itemize}
+Con los anillos abiertos no circula corriente rotórica y no hay par: el motor se comporta como un transformador en vacío, y en los anillos aparece el voltaje inducido a rotor bloqueado $E_{R0}$. Al cortocircuitarlos, el motor arranca y opera como uno de jaula.
 
-\subsection{Circuito equivalente y flujo de potencia}
-Por fase, el motor se representa con la resistencia y reactancia del estator ($R_1$, $X_1$), la rama de magnetización ($R_c\parallel jX_M$) y el rotor referido al estator ($R_2/s$, $X_2$) \cite{chapman,fitzgerald}. La potencia de entrada se reparte así:
+\subsection{Circuito equivalente por fase}
+El modelo por fase contiene la resistencia y la reactancia de dispersión del estator ($R_1$, $X_1$), la rama de magnetización ($R_C$ en paralelo con $jX_M$) y el rotor referido al estator \cite{chapman}. Como el voltaje inducido en el rotor y su reactancia son proporcionales a $s$, la corriente del rotor puede escribirse como
+\begin{equation}
+\mathbf{I}_R=\frac{\mathbf{E}_{R0}}{R_R/s+jX_{R0}},
+\label{eq:ir}
+\end{equation}
+de modo que todo el efecto de la carga mecánica queda en la resistencia variable $R_2/s$ \cite{diapositivas}. Si el estator está en estrella, $V_L=\sqrt3\,V_\phi$ e $I_L=I_\phi$; si está en delta, $V_L=V_\phi$ e $I_L=\sqrt3\,I_\phi$.
+
+\subsection{Flujo de potencia y pérdidas}
+La potencia que absorbe el motor se reparte así \cite{chapman}:
 \begin{gather}
-P_{in}=P_{Cu1}+P_{n\acute{u}cleo}+P_{AG},\qquad P_{Cu2}=s\,P_{AG},\label{eq:flujo1}\\
-P_{conv}=(1-s)P_{AG},\qquad P_{out}=P_{conv}-P_{mec}-P_{misc}.\label{eq:flujo2}
+P_{in}=P_{Cu1}+P_{n\acute{u}cleo}+P_{AG},\label{eq:flujo1}\\
+P_{Cu2}=s\,P_{AG},\qquad P_{conv}=(1-s)\,P_{AG},\label{eq:flujo2}\\
+P_{out}=P_{conv}-P_{mec}-P_{misc}.\label{eq:flujo3}
 \end{gather}
-En vacío $P_{out}=0$ y el deslizamiento es tan pequeño que $P_{Cu2}\approx 0$; por eso la potencia absorbida cubre solo el cobre del estator, el núcleo y las pérdidas mecánicas. Esa es la base de la prueba de vacío \cite{guia,ieee112}.
+$P_{Cu1}$ son las pérdidas en el cobre del estator, $P_{n\acute{u}cleo}$ las de histéresis y corrientes parásitas, $P_{AG}$ la potencia que cruza el entrehierro, $P_{Cu2}$ las pérdidas en el cobre del rotor, y $P_{mec}$ las de fricción y ventilación. En vacío el deslizamiento es tan pequeño que $P_{Cu2}\approx0$ y la potencia absorbida cubre solo el cobre del estator, el núcleo y la fricción. Las pérdidas en el núcleo están casi enteramente en el estator: el rotor gira casi a velocidad sincrónica y lo atraviesa un flujo casi constante \cite{guia}.
 
-\subsection{Curva par-velocidad y clases de diseño}
-El par crece casi linealmente con el deslizamiento cerca de $n_s$, llega a un máximo (par de desenganche) y luego cae. A deslizamiento fijo el par es proporcional a $V^2$, por lo que una reducción de tensión aumenta el deslizamiento para un mismo par de carga \cite{chapman}. Las clases NEMA A, B, C y D difieren en par de arranque, corriente de arranque y deslizamiento nominal; las clases A y B tienen deslizamientos a plena carga menores al \SI{5}{\percent} \cite{diapositivas}.
+\subsection{Característica par--velocidad}
+Con el equivalente de Thévenin visto desde el rotor, el par inducido es \cite{diapositivas}
+\begin{equation}
+\tau_{ind}=\frac{3\,V_{TH}^2\,R_2/s}{\omega_s\left[(R_{TH}+R_2/s)^2+(X_{TH}+X_2)^2\right]} .
+\label{eq:par}
+\end{equation}
+Cerca de $n_s$, $R_2/s$ domina y el par crece casi linealmente con $s$: es la zona estable donde trabaja el motor. A deslizamiento fijo el par es proporcional a $V^2$, por eso una reducción de tensión obliga a aumentar el deslizamiento para mover la misma carga. El par máximo no depende de $R_2$, pero el deslizamiento al que ocurre sí; las clases de diseño NEMA A, B, C y D aprovechan esto para lograr distintos pares de arranque. Los diseños A y B tienen deslizamientos a plena carga menores al \SI{5}{\percent} \cite{diapositivas}.
 
 % ===========================================================================
 \section{Máquinas y equipos}
 
-\subsection{Banco físico}
-La guía usa dos motores \cite{guia}:
-\begin{itemize}
-\item \textbf{Motor de inducción trifásico de jaula de ardilla De Lorenzo DL~1021} (Fig.~\ref{fig:equipos}a), con estator trifásico de seis bornes y jaula embebida en el rotor \cite{dl1021}.
-\item \textbf{Motor de inducción trifásico de rotor devanado.} La guía no da su referencia. Se supone el De Lorenzo DL~1022 (Fig.~\ref{fig:equipos}b), el motor de anillos de la misma línea, con devanados trifásicos en estator y rotor \cite{dl1022}.
-\end{itemize}
-Completan el banco la fuente trifásica variable, voltímetros, amperímetros o pinza amperimétrica, vatímetro trifásico, tacómetro, fuente de corriente continua y freno electromagnético con brazo y pesa para la prueba de carga \cite{guia}. La Fig.~\ref{fig:equipos}c muestra el interior de un motor de jaula: el estator bobinado y el rotor con su paquete de chapas.
+\subsection{Motor de inducción de jaula de ardilla De Lorenzo DL\,1021}
+El DL\,1021 es un motor de inducción trifásico didáctico con estator trifásico y jaula de ardilla embebida en el rotor (Fig.~\ref{fig:equipos}a). Según el fabricante entrega \SI{1,1}{kW} y se conecta en delta a \SI{220}{V} o en estrella a \SI{380}{V} \cite{dl1021}. Los seis extremos del estator están accesibles en una caja de bornes en la parte superior, lo que permite medir cada devanado por separado y hacer las dos conexiones de la guía. Es el motor de las pruebas de vacío y de carga.
+
+\subsection{Motor de inducción de rotor devanado}
+La guía no indica la referencia de este motor. Se supone el De Lorenzo DL\,1022 (Fig.~\ref{fig:equipos}b), el motor de anillos de la misma línea, con devanados trifásicos en estator y rotor, \SI{1,1}{kW} y \num{230}/\SI{400}{V} $\Delta$/Y \cite{dl1022}. Los terminales del rotor salen por anillos rozantes, de modo que pueden dejarse abiertos, medirse o cortocircuitarse, como pide la Actividad 1.
+
+\subsection{Fuente de alimentación}
+Se usa la fuente del banco De Lorenzo, la misma de la Práctica 3 \cite{lab3}: una salida trifásica de tensión variable para el estator de los motores, salidas fijas de CA y una salida de CC variable para el freno electromagnético. Tiene interruptor automático y parada de emergencia. Antes de energizar, las perillas deben quedar en cero.
+
+\subsection{Freno electromagnético}
+Para la prueba de carga el eje del motor se acopla a un freno electromagnético. Su estator es basculante y lleva un brazo con una pesa deslizante. La corriente continua que se aplica al freno crea un par que tiende a girar el estator; ese par se equilibra desplazando la pesa una distancia $X$ sobre el brazo, de modo que $\tau=m\,g\,X$ \cite{guia}. Al aumentar la excitación crece el par resistente sobre el motor.
+
+\subsection{Instrumentos de medida}
+Se emplean multímetros digitales Fluke 179 de verdadero valor eficaz (hasta \SI{1000}{V} y \SI{10}{A} en CA y CC) \cite{fluke179}, una pinza amperimétrica Fluke 323 (hasta \SI{400}{A} CA) \cite{fluke323}, un tacómetro y un vatímetro trifásico o dos vatímetros en conexión Aron. La Tabla~\ref{tab:equipos} resume el inventario.
 
 \begin{figure}[!t]
 \centering
-\subfloat[]{\includegraphics[height=0.33\columnwidth]{figuras/equipos/dl1021.jpg}}\hfill
-\subfloat[]{\includegraphics[height=0.33\columnwidth]{figuras/equipos/dl1022.jpg}}\\[2pt]
-\subfloat[]{\includegraphics[width=0.72\columnwidth]{figuras/equipos/estator_rotor.jpg}}
-\caption{Máquinas del banco físico. (a) Motor de jaula De Lorenzo DL~1021 \cite{dl1021}. (b) Motor de rotor devanado De Lorenzo DL~1022 \cite{dl1022}. (c) Estator y rotor de jaula de un motor de inducción desarmado \cite{img_estator}.}
+\subfloat[DL\,1021.]{\includegraphics[height=0.33\columnwidth]{figuras/equipos/dl1021.jpg}}\hfill
+\subfloat[DL\,1022.]{\includegraphics[height=0.33\columnwidth]{figuras/equipos/dl1022.jpg}}\\[2pt]
+\subfloat[Estator y rotor de jaula.]{\includegraphics[width=0.72\columnwidth]{figuras/equipos/estator_rotor.jpg}}
+\caption{Máquinas de la práctica: (a) motor de jaula De Lorenzo DL\,1021 \cite{dl1021}; (b) motor de rotor devanado De Lorenzo DL\,1022 \cite{dl1022}; (c) estator y rotor de jaula de un motor de inducción desarmado \cite{img_estator}.}
 \label{fig:equipos}
 \end{figure}
 
-\subsection{Equipos del simulador LVSIM-EMS}
-LVSIM-EMS \cite{lvsim} reproduce el sistema electromecánico LabVolt. Para esta práctica se usaron (Fig.~\ref{fig:lvsimmod}):
-\begin{itemize}
-\item Motor de inducción de jaula de ardilla de cuatro polos 8221-02: \SI{208}{V}, 3$\phi$, \SI{60}{Hz}; como motor, \SI{200}{W}, FP~0,73, \SI{1685}{\rpm}, \SI{1,14}{A}; cada bobina del estator está marcada \SI{120}{V}--\SI{1,5}{A} \cite{lv8221}.
-\item Motor de impulsión/dinamómetro 8960: en modo dinamómetro actúa como freno de par regulable (0--\SI{3}{N.m}, 0--\SI{2500}{\rpm}, \SI{175}{W} como dinamómetro) y entrega salidas analógicas de par y velocidad. Hace el papel del freno electromagnético y del tacómetro.
-\item Fuente de alimentación 8821-02: salidas fija \num{120}/\SI{208}{V} y variable 0--\num{120}/\SI{208}{V}, \SI{5}{A}; salida de CC variable 0--\SI{120}{V}; salida de \SI{24}{V} CA.
-\item Interfaz de adquisición de datos y control 9063 (DAI): cuatro entradas de tensión (E1--E4), cuatro de corriente (I1--I4) y entradas analógicas de par y velocidad. Con la ventana \emph{Aparatos de medición} cumple las funciones de voltímetros, amperímetros, vatímetros y tacómetro.
-\item Multímetros virtuales amarillo y rojo, en función de óhmetro.
-\end{itemize}
-
-LVSIM no incluye un motor de rotor devanado. Por eso los pasos de la guía que dependen de los bornes del rotor se tratan desde la teoría (Sección~\ref{sec:analisis}) y en el banco físico se harán con el motor de anillos.
-
-\begin{figure}[!t]
+\begin{table}[!t]
 \centering
-\includegraphics[width=\columnwidth]{figuras/lvsim/equipos_lvsim.png}
-\caption{Módulos de LVSIM-EMS usados en las simulaciones, capturados del simulador \cite{lvsim}: (a) motor de impulsión/dinamómetro 8960, (b) motor de jaula 8221, (c) fuente 8821, (d) interfaz de adquisición 9063.}
-\label{fig:lvsimmod}
-\end{figure}
+\caption{Equipos requeridos para la práctica}
+\label{tab:equipos}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}cp{0.27\columnwidth}p{0.25\columnwidth}p{0.3\columnwidth}@{}}
+\toprule
+Cant. & Equipo & Referencia & Rango/función \\
+\midrule
+1 & Motor de inducción jaula & De Lorenzo DL\,1021 & \SI{1,1}{kW}; \num{220}/\SI{380}{V} \\
+1 & Motor de inducción rotor devanado & De Lorenzo DL\,1022 (supuesto) & \SI{1,1}{kW}; \num{230}/\SI{400}{V} \\
+1 & Fuente AC/DC & De Lorenzo (banco) & CA trifásica variable; CC variable \\
+1 & Freno electromagnético & Del laboratorio & Par regulable; brazo y pesa \\
+3 & Multímetros & Fluke 179 & \SI{1000}{V}; \SI{10}{A} \\
+1 & Pinza amperimétrica & Fluke 323 & \SI{400}{A} CA \\
+2 & Vatímetros (Aron) & Del laboratorio & $P$ trifásica \\
+1 & Tacómetro & Del laboratorio & $\geq\SI{3600}{\rpm}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \IfFileExists{tablas/tabla_usuario.tex}{\input{tablas/tabla_usuario.tex}}{\nota{Aquí va la tabla que entrega Simón (tablas/tabla\_usuario.tex).}}
 
 % ===========================================================================
 \section{Análisis de la placa de características}
 
-\subsection{Motor de jaula DL~1021}
-El catálogo del fabricante \cite{dl1021} da los datos de la Tabla~\ref{tab:placadl}. Son datos de catálogo; deben confirmarse con la placa del motor del banco antes de la práctica.
+\subsection{Transcripción de datos nominales}
+La Tabla~\ref{tab:placa} recoge los datos del DL\,1021 que publica el fabricante \cite{dl1021}. Se contrastarán con la placa del equipo del laboratorio, porque el catálogo está referido a \SI{50}{Hz}.
 
 \begin{table}[!t]
 \centering
-\caption{Datos de catálogo del DL~1021 e inferencias}
-\label{tab:placadl}
+\caption{Información indicada en la placa del DL\,1021}
+\label{tab:placa}
 \footnotesize
-\begin{tabular}{@{}p{0.27\columnwidth}p{0.22\columnwidth}p{0.42\columnwidth}@{}}
+\begin{tabular}{@{}lcc@{}}
 \toprule
-Dato & Valor & Inferencia \\
+Magnitud & Símbolo & Valor nominal \\
 \midrule
-Potencia & \SI{1,1}{kW} & Potencia mecánica en el eje; par nominal $\approx$ \DLT~\si{N.m} a \SI{2870}{\rpm}. \\
-Tensión & \num{220}/\SI{380}{V} $\Delta$/Y & Bobina de \SI{220}{V}: delta en red de \SI{220}{V}, estrella en red de \SI{380}{V}. Las Tablas 20 y 21 de la guía usan delta. \\
-Corriente & \num{4,3}/\SI{2,5}{A} $\Delta$/Y & En delta la corriente de fase es $4{,}3/\sqrt3=\DLIfD$~\si{A}, igual a la de estrella: la bobina trabaja igual en ambas conexiones. \\
-Velocidad & \SI{2870}{\rpm}, \SI{50}{Hz} & $n_s=\DLnsCinc$~\si{\rpm}: 2 polos. $s=\DLs$~\%, $f_r=\DLfr$~\si{Hz}. A \SI{60}{Hz}, $n_s=\DLnsSes$~\si{\rpm} y $n\approx\DLnSes$~\si{\rpm}. \\
-Potencia aparente & --- & $S=\sqrt3\,V_LI_L=\DLSD$~\si{VA} en delta (igual en estrella). \\
-FP y eficiencia & no indicados & $\eta\cdot FP=P/S=\DLfpeta$; no se pueden separar sin la placa real. \\
+Tipo & --- & Motor asíncrono 3$\sim$, jaula \\
+Potencia en el eje & $P_N$ & \SI{1,1}{kW} \\
+Tensión de línea & $V_N$ & \num{220}/\SI{380}{V} ($\Delta$/Y) \\
+Corriente de línea & $I_N$ & \num{4,3}/\SI{2,5}{A} ($\Delta$/Y) \\
+Velocidad & $n_N$ & \SI{2870}{\rpm} \\
+Frecuencia & $f$ & \SI{50}{Hz} \\
+Factor de potencia & $\cos\varphi$ & no indicado \\
+Eficiencia & $\eta$ & no indicada \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Tres inferencias son importantes para la práctica. Primera: como el banco opera a \SI{60}{Hz} y el catálogo está a \SI{50}{Hz}, la velocidad en vacío del DL~1021 será cercana a \SI{3600}{\rpm}, no a \SI{3000}{\rpm}; la nota del fabricante advierte una diferencia de alrededor del \SI{20}{\percent} \cite{dl1021}. Segunda: el motor admite las dos conexiones de la guía (estrella y delta) con tensiones de línea distintas; conectar en delta a la tensión de la estrella sometería cada bobina a $\sqrt3$ veces su tensión. Tercera: la corriente nominal en delta (\SI{4,3}{A}) es el límite de la prueba de carga.
+\subsection{Interpretación detallada}
+La doble tensión \num{220}/\SI{380}{V} indica que cada devanado del estator está diseñado para \SI{220}{V}. En delta cada devanado queda entre dos líneas y la tensión de línea es \SI{220}{V}; en estrella cada devanado queda entre línea y neutro y la tensión de línea sube a $\sqrt3\cdot220\approx\SI{380}{V}$. Las corrientes \num{4,3}/\SI{2,5}{A} siguen la relación inversa. El catálogo no informa factor de potencia, eficiencia, clase de aislamiento ni clase de diseño, por lo que esos datos no se asumen. La nota del fabricante advierte que a \SI{60}{Hz} las velocidades son cerca de un \SI{20}{\percent} mayores \cite{dl1021}.
 
-\subsection{Motor de rotor devanado (DL~1022 supuesto)}
-El catálogo del DL~1022 \cite{dl1022} indica \SI{1,1}{kW}, \num{230}/\SI{400}{V} $\Delta$/Y, \num{4,3}/\SI{2,5}{A} y \SI{2870}{\rpm} a \SI{50}{Hz}. Los mismos cálculos que para el DL~1021 dan 2 polos, $s=\DLs$~\% y $S\approx\DLdS$~\si{VA}. El catálogo no da la tensión del rotor ni la relación de transformación, por lo que la tensión en los anillos con rotor abierto se medirá en el banco.
+\subsection{Información obtenida por inferencia}
+\subsubsection{Potencia aparente y corrientes}
+Las dos conexiones dan la misma potencia aparente:
+\begin{align}
+S_\Delta&=\sqrt3\,(220)(4{,}3)\approx\SI{1639}{VA},\label{eq:sd}\\
+S_Y&=\sqrt3\,(380)(2{,}5)\approx\SI{1645}{VA}.\label{eq:sy}
+\end{align}
+La corriente por devanado en delta es $4{,}3/\sqrt3=\DLIfD$~\si{A}, prácticamente igual a los \SI{2,5}{A} de la conexión en estrella: cada devanado trabaja con unos \SI{220}{V} y \SI{2,5}{A} en ambos casos. Sin el factor de potencia no se puede separar la eficiencia; solo se sabe que
+\begin{equation}
+\eta\cos\varphi=\frac{P_N}{S}=\frac{1100}{1639}=\DLfpeta .
+\label{eq:etafp}
+\end{equation}
+Valores típicos de un motor de este tamaño, $\eta\approx0{,}78$ y $\cos\varphi\approx0{,}86$, son coherentes con ese producto.
 
-\subsection{Motor LabVolt 8221 (LVSIM)}
-La placa del módulo es: \SI{208}{V}, 3$\phi$, \SI{60}{Hz}; motor: \SI{200}{W}, FP~0,73, \SI{1685}{\rpm}, \SI{1,14}{A}; alternador: \SI{425}{VA}, \SI{200}{W}, FP~0,47, \SI{1900}{\rpm}, \SI{1,18}{A}. De ahí:
-\begin{itemize}
-\item $n_s=\LVns$~\si{\rpm} (4 polos); $s=\LVs$~\% y $f_r=\LVfr$~\si{Hz} a plena carga.
-\item $S=\sqrt3(208)(1{,}14)=\LVS$~\si{VA}, $P_{in}=S\cdot FP=\LVPin$~\si{W}, $Q=\LVQin$~\si{\VAr} y $\eta=200/\LVPin=\LVeta$~\%.
-\item $\tau_n=P/\omega=200/\LVw=\LVT$~\si{N.m}.
-\item Cada bobina está marcada \SI{120}{V}. Los \SI{208}{V} de placa corresponden a la conexión en estrella ($208/\sqrt3=\LVVfY$~\si{V} por bobina). En delta la tensión nominal de línea es \SI{120}{V} y la corriente de línea nominal $1{,}14\sqrt3=\LVIfD$~\si{A}.
-\item Los datos de alternador (\SI{1900}{\rpm} $>n_s$, FP~0,47) muestran que la misma máquina genera con deslizamiento negativo y que, aun generando, consume reactivos \cite{generador}.
-\end{itemize}
+\subsubsection{Polos, deslizamiento y par}
+Con la velocidad de placa y \eqref{eq:ns}, la velocidad sincrónica inmediatamente superior a \SI{2870}{\rpm} a \SI{50}{Hz} es \SI{3000}{\rpm}:
+\begin{equation}
+P=\frac{120f}{n_s}=\frac{120(50)}{3000}=2\ \text{polos}.
+\label{eq:polos}
+\end{equation}
+El deslizamiento nominal es $s=(3000-2870)/3000=\DLs$~\%, típico de un diseño NEMA B, y la frecuencia del rotor a plena carga es $f_r=\DLfr$~\si{Hz}. El par nominal es
+\begin{equation}
+\tau_N=\frac{P_N}{\omega_N}=\frac{1100}{2\pi(2870)/60}=\DLT~\si{N.m}.
+\label{eq:parn}
+\end{equation}
+
+\subsubsection{Operación a 60 Hz}
+En el laboratorio la red es de \SI{60}{Hz}. Entonces $n_s=\SI{3600}{\rpm}$ y, con el mismo deslizamiento, la velocidad a plena carga será de unos \DLnSes~\si{\rpm}. Con la misma tensión y mayor frecuencia, el flujo baja a $50/60=\DLflujo$~\% del nominal, así que la corriente de magnetización será menor y el par máximo también. Si el motor entrega los mismos \SI{1,1}{kW}, el par necesario es $1100/(2\pi\cdot3444/60)=\DLTsesenta$~\si{N.m}.
+
+\subsubsection{Motor de rotor devanado}
+Los mismos cálculos para el DL\,1022 (\num{230}/\SI{400}{V}, \num{4,3}/\SI{2,5}{A}, \SI{2870}{\rpm} a \SI{50}{Hz}) dan dos polos, $s=\DLs$~\% y $S\approx\DLdS$~\si{VA}. El catálogo no da la tensión del rotor ni la relación de transformación, así que el voltaje en los anillos con el rotor abierto se medirá en el banco.
 
 % ===========================================================================
-\section{Aplicación práctica}
-Una aplicación típica del motor de jaula es el accionamiento de bombas centrífugas en acueductos, plantas de tratamiento, distritos de riego y sistemas de enfriamiento industrial. La Fig.~\ref{fig:aplicacion} muestra una bomba centrífuga normalizada acoplada a un motor de inducción con variador de frecuencia montado sobre la carcasa \cite{img_ksb}.
+\section{Aplicación práctica identificada}
 
-La elección del motor de inducción se justifica con las mismas características que se estudian en la práctica. Su velocidad casi constante (deslizamiento de pocos por ciento) mantiene el caudal estable aunque la carga hidráulica cambie. La jaula de ardilla no tiene escobillas ni anillos, lo que reduce el mantenimiento en ambientes húmedos. El variador cambia la frecuencia y, por la ecuación~\eqref{eq:ns}, la velocidad sincrónica; como la potencia de una bomba centrífuga varía aproximadamente con el cubo de la velocidad, una reducción moderada de velocidad produce un ahorro grande de energía frente al estrangulamiento con válvulas. Además, el variador limita la corriente de arranque, que en arranque directo es de 5 a 8 veces la nominal \cite{diapositivas}. La misma máquina, impulsada por encima de $n_s$, se usa como generador en aerogeneradores de velocidad fija tipo~A, como se vio en el material de apoyo \cite{generador}.
+\subsection{Bombeo de agua en acueductos}
+Una aplicación típica del motor de jaula es el accionamiento de bombas centrífugas. En una ciudad como Barranquilla el agua se capta del río Magdalena, se potabiliza y se impulsa por la red mediante estaciones de bombeo; lo mismo ocurre con las aguas residuales y en los distritos de riego del Atlántico. La Fig.~\ref{fig:aplicacion} muestra una bomba centrífuga normalizada acoplada a un motor de inducción de jaula con variador de frecuencia montado sobre la carcasa \cite{img_ksb}. Las bombas de acueducto suelen usar motores de dos o cuatro polos, como el DL\,1021, porque las bombas centrífugas trabajan a alta velocidad.
+
+\subsection{Función dentro del sistema}
+La elección del motor de inducción se justifica con las mismas características que se miden en la práctica. Su velocidad casi constante, con deslizamientos de pocos por ciento, mantiene el caudal estable aunque cambie la presión de la red. La jaula de ardilla no tiene escobillas ni anillos, lo que reduce el mantenimiento en ambientes húmedos y permite operar de forma continua. El variador cambia la frecuencia y, por \eqref{eq:ns}, la velocidad sincrónica. Como la potencia de una bomba centrífuga varía aproximadamente con el cubo de la velocidad, una reducción moderada de velocidad ahorra mucha más energía que estrangular el caudal con válvulas. Además, el variador limita la corriente de arranque, que en arranque directo es de 5 a 8 veces la nominal \cite{diapositivas}. La misma máquina, impulsada por encima de $n_s$, se usa como generador en aerogeneradores de velocidad fija tipo~A \cite{generador}.
 
 \begin{figure}[!t]
 \centering
 \includegraphics[width=0.85\columnwidth]{figuras/equipos/ksb_etanorm.jpg}
-\caption{Bomba centrífuga accionada por un motor de inducción trifásico con variador de frecuencia integrado. Imagen: KSB AG, CC BY-SA 3.0 \cite{img_ksb}.}
+\caption{Bomba centrífuga accionada por un motor de inducción trifásico con variador de frecuencia. Imagen: KSB AG, CC BY-SA 3.0 \cite{img_ksb}.}
 \label{fig:aplicacion}
 \end{figure}
 
 % ===========================================================================
 \section{Cálculos previos}
-Los cálculos se reproducen con \texttt{calculos/calculos\_previos.py}, que escribe los valores en \texttt{calculos/salidas/previos.tex}.
 
-\subsection{Velocidad sincrónica, deslizamiento y frecuencia del rotor}
-Con \eqref{eq:ns}--\eqref{eq:fr}:
-\begin{align*}
-\text{DL 1021:}\;& n_s=\tfrac{120\cdot50}{2}=\DLnsCinc~\si{\rpm},\\
-& s=\tfrac{3000-2870}{3000}=\DLs~\%,\quad f_r=\DLfr~\si{Hz};\\
-\text{8221:}\;& n_s=\tfrac{120\cdot60}{4}=\LVns~\si{\rpm},\\
-& s=\tfrac{1800-1685}{1800}=\LVs~\%,\quad f_r=\LVfr~\si{Hz}.
-\end{align*}
+\subsection{Resistencia de los devanados}
+Con los seis terminales accesibles, cada devanado ($U_1U_2$, $V_1V_2$, $W_1W_2$) se mide por separado con el óhmetro o con el método voltímetro--amperímetro en corriente continua. Si los devanados ya estuvieran conectados, la resistencia por devanado se obtiene de la medida entre líneas:
+\begin{equation}
+R_{dev}=\frac{R_{LL}}{2}\quad(\mathrm{Y}),\qquad R_{dev}=\frac{3R_{LL}}{2}\quad(\Delta).
+\label{eq:rll}
+\end{equation}
+La placa no da la resistencia. Si las pérdidas en el cobre del estator a plena carga estuvieran entre el \SI{3}{\percent} y el \SI{6}{\percent} de $S$ (entre \DLPcuLo\ y \DLPcuHi~\si{W}), con $I_\phi=\DLIfD$~\si{A} la resistencia por devanado estaría entre \DLRLo\ y \DLRHi~\si{\ohm}. Entre líneas se leerían \DLRDLo--\DLRDHi~\si{\ohm} en delta y \DLRYLo--\DLRYHi~\si{\ohm} en estrella. Con una corriente de prueba de \SI{1}{A}, la caída sería de unos \DLVpruebaLo--\DLVpruebaHi~\si{V}, fácil de leer en la escala de \SI{6}{V} del Fluke 179. Como indica la guía, las tres fases deben diferir en menos del 3--5~\%:
+\begin{equation}
+\Delta R\,(\%)=\frac{R_{m\acute{a}x}-R_{m\acute{\imath}n}}{R}\times100 .
+\label{eq:dr}
+\end{equation}
+En el motor de rotor devanado se mide también la resistencia entre anillos; por tener bobinas de muchas espiras de alambre más delgado, la resistencia del rotor devanado será mayor que la de una jaula de barras gruesas.
 
-\subsection{Par, potencia de entrada y eficiencia nominales}
-Para el 8221: $\omega=1685\cdot2\pi/60=\LVw$~\si{rad/s}, $\tau_n=\LVT$~\si{N.m}, $S=\LVS$~\si{VA}, $P_{in}=\LVPin$~\si{W}, $\eta=\LVeta$~\%, y pérdidas totales a plena carga $P_{in}-P_{out}=\LVperdidas$~\si{W}. Para el DL~1021: $\tau_n=\DLT$~\si{N.m} y $S=\DLSD$~\si{VA}.
+\subsection{Puesta en operación}
+El motor de jaula se energiza en vacío al 100, 80 y \SI{60}{\percent} de la tensión nominal de cada conexión. En vacío el par de carga es solo el de fricción, así que se espera una velocidad cercana a la sincrónica, del orden de \DLnVac~\si{\rpm} ($s\approx\DLsVac$~\%). A tensión reducida el par disponible cae con $V^2$ y el deslizamiento debe crecer: con par de carga constante y $s$ pequeño, $s\propto1/V^2$. Al \SI{80}{\percent} el deslizamiento sería $1/0{,}8^2=1{,}56$ veces el de tensión nominal y al \SI{60}{\percent}, $1/0{,}6^2=2{,}78$ veces. La Tabla~\ref{tab:regop} es la tabla propuesta para registrar esta actividad.
 
-\subsection{Resistencia esperada entre líneas}
-Si $R$ es la resistencia de una bobina, la medida entre dos líneas es $2R$ en estrella y $R\parallel 2R=2R/3$ en delta. Con $R=\LVR$~\si{\ohm} (valor del 8221 en LVSIM): \LVRY~\si{\ohm} en estrella y \LVRD~\si{\ohm} en delta. La guía fija una tolerancia del \DLtolA\,--\,\DLtolB~\% entre fases \cite{guia}.
+\begin{table}[!t]
+\centering
+\caption{Tabla propuesta para registrar la puesta en operación}
+\label{tab:regop}
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\resizebox{\columnwidth}{!}{\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Motor/conexión & \% $V_N$ & $V_L$ (V) & $I_L$ (A) & $n$ (\si{\rpm}) & Sentido & $V_{rotor}$ (V) \\
+\midrule
+Rot. dev./Y, abierto & 100 & 380 & --- & 0 & --- & --- \\
+Rot. dev./Y, en corto & 100/80/60 & 380/304/228 & --- & --- & --- & 0 \\
+Rot. dev./$\Delta$, en corto & 100/80/60 & 220/176/132 & --- & --- & --- & 0 \\
+Jaula/Y & 100/80/60 & 380/304/228 & --- & --- & --- & n.\,a. \\
+Jaula/$\Delta$ & 100/80/60 & 220/176/132 & --- & --- & --- & n.\,a. \\
+\bottomrule
+\multicolumn{7}{@{}l}{---: se mide en el laboratorio. Si es el DL\,1022, 400/\SI{230}{V}.}
+\end{tabular}}
+\end{table}
 
-\subsection{Tensiones de la prueba de vacío}
-La Tabla~20 de la guía barre de \SI{240}{V} a \SI{100}{V} en delta, es decir, del \TvPctA~\% al \TvPctH~\% de los \SI{220}{V} nominales del DL~1021. En LVSIM, con \SI{120}{V} nominales en delta, se usaron las mismas fracciones (Tabla~\ref{tab:tensiones}).
+\subsection{Prueba de vacío}
+La guía propone conectar el motor en delta y barrer la tensión de \SI{240}{V} a \SI{100}{V} (Tabla~20). Con la medida de los dos vatímetros,
+\begin{gather}
+P_0=P_{W1}+P_{W2},\qquad P_{Cu}=3R_{est}I_\phi^2,\qquad I_\phi=\frac{I_L}{\sqrt3},\label{eq:p0}\\
+P_m+P_{fe}=P_0-P_{Cu},\qquad \cos\theta=\frac{P_0}{\sqrt3\,V_LI_L}.\label{eq:pmfe}
+\end{gather}
+En vacío el factor de potencia es bajo, porque la corriente es casi toda de magnetización; cuando $\cos\theta<0{,}5$ el vatímetro $W_2$ marca negativo y su lectura debe restarse \cite{fraile}. Las pérdidas en el hierro son aproximadamente proporcionales a $V^2$, mientras que las mecánicas dependen solo de la velocidad, casi constante en vacío. Por eso, al graficar $P_m+P_{fe}$ contra $V^2$ y extrapolar la recta a $V=0$, el intercepto es la pérdida mecánica \cite{ieee112}. La Tabla~\ref{tab:vacesp} da los factores con que deben escalar las lecturas respecto al punto de \SI{220}{V}. El punto de \SI{240}{V} está un \SI{9}{\percent} por encima de la tensión nominal y debe tomarse rápido, vigilando que la corriente no supere \SI{4,3}{A}.
+
+\begin{table}[!t]
+\centering
+\caption{Pasos de la prueba de vacío y factores de escala esperados}
+\label{tab:vacesp}
+\footnotesize
+\begin{tabular}{@{}cccc@{}}
+\toprule
+$V_{CA}$ (V) & $V/V_N$ & $(V/V_N)^2$ & Comportamiento esperado \\
+\midrule
+\TvVFA & \TvVVA & \TvVVsqA & sobretensión breve \\
+\TvVFB & \TvVVB & \TvVVsqB & punto nominal \\
+\TvVFC & \TvVVC & \TvVVsqC & $P_{fe}\propto V^2$ \\
+\TvVFD & \TvVVD & \TvVVsqD & $I_0\propto V$ \\
+\TvVFE & \TvVVE & \TvVVsqE & $I_0\propto V$ \\
+\TvVFF & \TvVVF & \TvVVsqF & $P_{fe}\propto V^2$ \\
+\TvVFG & \TvVVG & \TvVVsqG & $s$ aumenta \\
+\TvVFH & \TvVVH & \TvVVsqH & $s$ aumenta \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Prueba de carga}
+El motor se mantiene en delta a \SI{220}{V} y se carga con el freno hasta llegar a la corriente nominal de \SI{4,3}{A}. El par se obtiene del equilibrio del brazo y la potencia de salida de la velocidad:
+\begin{gather}
+\tau=m\,g\,X,\qquad P_{out}=\tau\,\frac{2\pi n}{60},\label{eq:pout}\\
+\eta=\frac{P_{out}}{P_{in}}\times100,\qquad s=\frac{n_s-n}{n_s}\times100,\label{eq:eta}\\
+RV=\frac{n_{vac}-n_{pc}}{n_{pc}}\times100 .\label{eq:rv}
+\end{gather}
+La guía no da la masa de la pesa. La Tabla~\ref{tab:freno} da el par por cada kilogramo de pesa para los desplazamientos de \SI{2}{cm} que pide el procedimiento. Para llegar a los \DLTsesenta~\si{N.m} nominales con $X=\SI{20}{cm}$ haría falta una pesa de unos \FrMasaNom~\si{kg}. Con $n_{vac}\approx\DLnVac$~\si{\rpm} y $n_{pc}\approx\DLnSes$~\si{\rpm}, la regulación de velocidad esperada es de unos \DLRVest~\%.
+
+\begin{table}[!t]
+\centering
+\caption{Par del freno por kilogramo de pesa, $\tau/m=g\,X$}
+\label{tab:freno}
+\scriptsize
+\setlength{\tabcolsep}{2.4pt}
+\resizebox{\columnwidth}{!}{\begin{tabular}{@{}lcccccccccc@{}}
+\toprule
+$X$ (cm) & \FrXA & \FrXB & \FrXC & \FrXD & \FrXE & \FrXF & \FrXG & \FrXH & \FrXI & \FrXJ \\
+$\tau/m$ (N\,m/kg) & \FrTA & \FrTB & \FrTC & \FrTD & \FrTE & \FrTF & \FrTG & \FrTH & \FrTI & \FrTJ \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\subsection{Valores de referencia del motor simulado}
+Para la simulación se usa el motor LabVolt 8221 de LVSIM, cuya placa indica \SI{208}{V}, 3$\sim$, \SI{60}{Hz}, \SI{200}{W}, FP~0,73, \SI{1685}{\rpm} y \SI{1,14}{A}, con bobinas de \SI{120}{V}--\SI{1,5}{A}. Con \eqref{eq:ns}--\eqref{eq:fr}: $n_s=\LVns$~\si{\rpm} (cuatro polos), $s=\LVs$~\% y $f_r=\LVfr$~\si{Hz}. La potencia de entrada nominal es $P_{in}=\sqrt3(208)(1{,}14)(0{,}73)=\LVPin$~\si{W}, la eficiencia $\eta=200/\LVPin=\LVeta$~\% y el par $\tau_N=\LVT$~\si{N.m}. Como cada bobina es de \SI{120}{V}, los \SI{208}{V} de placa corresponden a la estrella; en delta la tensión nominal de línea es \SI{120}{V} y la corriente de línea nominal $1{,}14\sqrt3=\LVIfD$~\si{A}. Las tensiones de la Tabla~20 se escalaron en la misma proporción, como muestra la Tabla~\ref{tab:tensiones}.
 
 \begin{table}[!t]
 \centering
@@ -247,202 +389,130 @@ La Tabla~20 de la guía barre de \SI{240}{V} a \SI{100}{V} en delta, es decir, d
 \setlength{\tabcolsep}{2.6pt}
 \begin{tabular}{@{}lcccccccc@{}}
 \toprule
-Guía [V] & \TvGuiaA & \TvGuiaB & \TvGuiaC & \TvGuiaD & \TvGuiaE & \TvGuiaF & \TvGuiaG & \TvGuiaH\\
-\% de $V_n$ & \TvPctA & \TvPctB & \TvPctC & \TvPctD & \TvPctE & \TvPctF & \TvPctG & \TvPctH\\
-LVSIM [V] & \TvLVA & \TvLVB & \TvLVC & \TvLVD & \TvLVE & \TvLVF & \TvLVG & \TvLVH\\
+Guía (V) & \TvGuiaA & \TvGuiaB & \TvGuiaC & \TvGuiaD & \TvGuiaE & \TvGuiaF & \TvGuiaG & \TvGuiaH\\
+\% de $V_N$ & \TvPctA & \TvPctB & \TvPctC & \TvPctD & \TvPctE & \TvPctF & \TvPctG & \TvPctH\\
+LVSIM (V) & \TvLVA & \TvLVB & \TvLVC & \TvLVD & \TvLVE & \TvLVF & \TvLVG & \TvLVH\\
 \bottomrule
 \end{tabular}
 \end{table}
-
-\subsection{Fórmulas de las pruebas de vacío y de carga}
-Con el método de los dos vatímetros (conexión Aron) la potencia trifásica es $P_0=P_{W1}+P_{W2}$; uno de los vatímetros marca negativo cuando $FP<0{,}5$ \cite{fitzgerald}. En delta la corriente de fase es $I_\phi=I_L/\sqrt3$ y
-\begin{gather}
-P_{Cu}=3R_{est}I_\phi^2,\qquad P_m+P_{fe}=P_0-P_{Cu},\label{eq:pvacio}\\
-\cos\theta=\frac{P_0}{\sqrt3\,V_LI_L}.\label{eq:fp}
-\end{gather}
-Las pérdidas en el hierro son casi proporcionales a $V^2$ y las mecánicas dependen solo de la velocidad, que en vacío es casi constante. Al graficar $P_m+P_{fe}$ contra $V^2$ y extrapolar a $V=0$ se obtienen las pérdidas mecánicas \cite{ieee112}. En la prueba de carga:
-\begin{gather}
-P_{out}=\tau\,\omega=\tau\frac{2\pi n}{60},\qquad \eta=\frac{P_{out}}{P_{in}}\times100,\label{eq:eta}\\
-RV=\frac{n_{vac}-n_{pc}}{n_{pc}}\times100 .\label{eq:rv}
-\end{gather}
-En el freno físico el par se obtiene del equilibrio del brazo, $\tau=m\,g\,X$, con $X$ el desplazamiento de la pesa \cite{guia}. La masa de la pesa no aparece en la guía y se debe leer en el banco.
-
-\subsection{Velocidad esperada con tensión reducida}
-Con par de carga constante y $s$ pequeño, $\tau\propto V^2 s$, de modo que $s\propto1/V^2$. Partiendo del deslizamiento nominal del 8221, al \SI{80}{\percent} de la tensión se espera $s\approx\LVsEstEighty$\,\% y al \SI{60}{\percent}, $s\approx\LVsEstSixty$\,\%. En vacío el par de carga es solo el de fricción, de modo que los deslizamientos reales serán mucho menores; la tendencia (más deslizamiento con menos tensión) es la que se debe verificar.
 
 % ===========================================================================
 \section{Conexiones entre equipos}
-\label{sec:conexiones}
-En todo el documento, U1--U2, V1--V2 y W1--W2 son los extremos de las tres bobinas del estator. En el 8221 corresponden a los bornes 1--4, 2--5 y 3--6; los bornes 1, 2 y 3 tienen la misma polaridad instantánea.
 
-\subsection{Actividad 1.1: resistencia de los devanados}
+\subsection{Descripción de las conexiones}
+En todas las pruebas el estator se alimenta desde la salida trifásica variable de la fuente, y todos los cambios de conexión se hacen con la fuente en cero y desenergizada. Lo que cambia entre pruebas es la conexión del estator, del rotor y de los instrumentos:
 \begin{itemize}
-\item \textbf{Óhmetro, por fase:} motor desenergizado y sin puentes. Terminal COM del óhmetro a U1 y terminal V$\Omega$ a U2; luego V1--V2 y W1--W2. En el motor de rotor devanado se repite en el estator y entre los anillos del rotor (K--L, L--M, K--M).
-\item \textbf{Comprobación entre líneas:} con los puentes de estrella (U2--V2--W2) se mide entre U1 y V1; con los de delta se repite la medida.
-\item \textbf{Voltímetro-amperímetro (opcional, en CC):} borne + de la fuente de CC variable a la entrada de un amperímetro; salida del amperímetro a U1; U2 al borne N de la fuente. Voltímetro en paralelo entre U1 (+) y U2 (--). La corriente se limita a menos de la nominal de la bobina.
+\item \textbf{Resistencias:} motor desconectado y sin puentes. El óhmetro se conecta sobre cada devanado ($U_1U_2$, $V_1V_2$, $W_1W_2$). En el método voltímetro--amperímetro, la fuente de CC alimenta el devanado a través de un amperímetro en serie, con el voltímetro directamente sobre sus bornes. En el motor de rotor devanado se mide además entre anillos ($K$--$L$, $L$--$M$, $K$--$M$).
+\item \textbf{Estrella:} puentes $U_2$--$V_2$--$W_2$; las líneas $L_1$, $L_2$ y $L_3$ van a $U_1$, $V_1$ y $W_1$, con la pinza en una línea y un voltímetro entre dos líneas.
+\item \textbf{Delta:} puentes $U_2$--$V_1$, $V_2$--$W_1$ y $W_2$--$U_1$; las líneas entran por $U_1$, $V_1$ y $W_1$.
+\item \textbf{Rotor devanado:} primero con los anillos $K$, $L$, $M$ abiertos y un voltímetro entre dos de ellos; luego unidos en un solo nodo con dos puentes.
+\item \textbf{Inversión de giro:} con la fuente apagada se intercambian $L_1$ y $L_2$ en la entrada del motor; en el paso siguiente, $L_2$ y $L_3$.
+\item \textbf{Vacío y carga:} estator en delta, un amperímetro en cada línea, $W_1$ con su bobina de corriente en $L_1$ y su bobina de tensión entre $L_1$ y $L_3$, y $W_2$ con su bobina de corriente en $L_2$ y tensión entre $L_2$ y $L_3$. En la prueba de carga el eje se acopla al freno, cuyo devanado se alimenta desde la salida de CC con un amperímetro en serie.
 \end{itemize}
-
-\subsection{Actividad 1.2: puesta en operación}
-\begin{itemize}
-\item \textbf{Estrella:} puentes U2--V2--W2. Líneas L1, L2 y L3 de la fuente variable a U1, V1 y W1, cada una a través de un amperímetro (o abrazadas por la pinza). Voltímetro entre L1 y L2.
-\item \textbf{Delta:} puentes U2--V1, V2--W1 y W2--U1. Las líneas entran por U1, V1 y W1 como en estrella.
-\item \textbf{Rotor devanado:} los anillos K, L y M quedan primero abiertos con un voltímetro entre dos de ellos; luego se unen en un solo nodo con dos puentes (K--L y L--M).
-\item \textbf{Inversión de giro:} con la fuente apagada se intercambian dos conductores de línea (L1$\leftrightarrow$L2) y, en el paso siguiente, otros dos (L2$\leftrightarrow$L3).
-\item \textbf{Velocidad:} tacómetro óptico sobre el eje o, en LVSIM, salida de velocidad del dinamómetro acoplado por correa.
-\end{itemize}
-
-\subsection{Actividad 2: vacío y carga (delta)}
-\begin{itemize}
-\item \textbf{Fuente y corrientes:} L1, L2 y L3 de la fuente variable a U1, V1 y W1 a través de tres amperímetros. Estator en delta como en la actividad anterior.
-\item \textbf{Vatímetro trifásico o dos vatímetros (Aron):} W1 con su bobina de corriente en la línea 1 y su bobina de tensión entre L1 (+) y L3; W2 con su bobina de corriente en la línea 2 y tensión entre L2 (+) y L3. Un voltímetro entre L1 y L2.
-\item \textbf{Carga (prueba de carga):} eje del motor acoplado al freno electromagnético; el devanado del freno se alimenta de la fuente de CC a través de un amperímetro, y su corriente fija el par. En LVSIM, el dinamómetro 8960 acoplado por correa, en modo DIN. y control manual.
-\end{itemize}
-
-\subsection{Conexiones usadas en LVSIM}
-Las conexiones de las simulaciones siguen lo anterior, con la DAI 9063 como instrumentación (Tabla~\ref{tab:conexlv}). Los cables se colorearon por fase: naranja (A), verde (B) y azul (C); los puentes de estrella y delta, en blanco en la actividad 1.1; las señales de par y velocidad, en amarillo.
-
-\begin{table}[!t]
-\centering
-\caption{Conexiones de las simulaciones en LVSIM (actividades 1.2 y 2)}
-\label{tab:conexlv}
-\footnotesize
-\begin{tabular}{@{}p{0.36\columnwidth}p{0.56\columnwidth}@{}}
-\toprule
-Desde & Hacia \\
-\midrule
-Fuente 4 (L1) & I1 (+) de la DAI; I1 (--) al borne 1 del motor \\
-Fuente 5 (L2) & I2 (+); I2 (--) al borne 2 \\
-Fuente 6 (L3) & I3 (+); I3 (--) al borne 3 \\
-Puentes Y & 4--5 y 5--6 \\
-Puentes $\Delta$ & 4--2, 5--3 y 6--1 \\
-E1 (W1) & + al borne 1, -- al borne 3 ($V_{AC}$) \\
-E2 (W2) & + al borne 2, -- al borne 3 ($V_{BC}$) \\
-E3 & + al borne 1, -- al borne 2 ($V_{AB}$) \\
-Dinamómetro par / velocidad & entradas analógicas 7/T y 8/n de la DAI; común a común \\
-Fuente 24 V CA & alimentación de la DAI; el dinamómetro, con su adaptador de 24 V \\
-Medidores & PQS1(E1,I1)=$P_{W1}$, PQS2(E2,I2)=$P_{W2}$, T, n, Pm(T,n) \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 \subsection{Montajes físicos}
-\IfFileExists{figuras/montajes/montajes.pdf}{La Fig.~\ref{fig:montajes} presenta}{Se preparan}\ los montajes sobre fotografías de los equipos del laboratorio, uno por actividad: (a) medida de resistencia, (b) puesta en operación del motor de rotor devanado, (c) puesta en operación del motor de jaula y (d) pruebas de vacío y de carga con freno.
+\IfFileExists{figuras/montajes/montajes.pdf}{La Fig.~\ref{fig:montajes} muestra}{Se preparan} los montajes principales sobre los equipos del laboratorio, uno por actividad: la medida de resistencia, la puesta en operación del motor de rotor devanado, la puesta en operación del motor de jaula y las pruebas de vacío y de carga con el freno. Muestran las conexiones de potencia y de los instrumentos descritas arriba.
 
 \IfFileExists{figuras/montajes/montajes.pdf}{%
 \begin{figure*}[p]
 \centering
-\subfloat[Actividad 1.1: resistencia de devanados.]{\includegraphics[width=0.48\textwidth,page=1]{figuras/montajes/montajes.pdf}}\hfill
-\subfloat[Actividad 1.2: motor de rotor devanado.]{\includegraphics[width=0.48\textwidth,page=2]{figuras/montajes/montajes.pdf}}\\
-\subfloat[Actividad 1.2: motor de jaula DL~1021.]{\includegraphics[width=0.48\textwidth,page=3]{figuras/montajes/montajes.pdf}}\hfill
-\subfloat[Actividad 2: vacío y carga con freno.]{\includegraphics[width=0.48\textwidth,page=4]{figuras/montajes/montajes.pdf}}
-\caption{Montajes físicos de la práctica sobre fotografías de los equipos.}
+\subfloat[Resistencia de los devanados.]{\includegraphics[width=0.48\textwidth,page=1]{figuras/montajes/montajes.pdf}}\hfill
+\subfloat[Puesta en operación, rotor devanado.]{\includegraphics[width=0.48\textwidth,page=2]{figuras/montajes/montajes.pdf}}\\
+\subfloat[Puesta en operación, jaula DL\,1021.]{\includegraphics[width=0.48\textwidth,page=3]{figuras/montajes/montajes.pdf}}\hfill
+\subfloat[Vacío y carga con freno.]{\includegraphics[width=0.48\textwidth,page=4]{figuras/montajes/montajes.pdf}}
+\caption{Montajes de la práctica sobre los equipos del laboratorio.}
 \label{fig:montajes}
 \end{figure*}}{%
 \ifborrador
 \begin{figure*}[p]
 \centering
-\fbox{\parbox[c][0.8\textheight][c]{0.95\textwidth}{\centering\color{red} Montajes físicos (PDF de Simón): a) 1.1, b) 1.2 rotor devanado, c) 1.2 jaula, d) 2 vacío/carga}}
-\caption{Montajes físicos de la práctica sobre fotografías de los equipos.}
+\fbox{\parbox[c][0.8\textheight][c]{0.95\textwidth}{\centering\color{red} Montajes físicos (PDF de Simón)}}
+\caption{Montajes de la práctica sobre los equipos del laboratorio.}
 \label{fig:montajes}
 \end{figure*}
 \fi}
 
 % ===========================================================================
-\section{Simulación en LabVolt (LVSIM-EMS)}
-\label{sec:sim}
+\section{Simulación en LabVolt}
 
-\subsection{Condiciones y adaptaciones}
-Las simulaciones se hicieron en LVSIM-EMS \cite{lvsim} con red de \SI{120}{V}/\SI{60}{Hz}, los módulos de la Fig.~\ref{fig:lvsimmod} y una distribución propia del banco en cada actividad. Las lecturas son corridas reales del simulador: cada punto es el promedio de cinco o seis lecturas de la ventana de medición tomadas a un segundo de intervalo. Los montajes se guardaron como archivos JSON en \texttt{calculos/lvsim/} y los datos se procesaron con \texttt{calculos/procesar\_lvsim.py}. Las adaptaciones frente a la guía fueron:
-\begin{enumerate}
-\item El motor es el 8221 (\SI{200}{W}, 4 polos) y no el DL~1021 (\SI{1,1}{kW}, 2 polos). Las magnitudes cambian de escala, pero el comportamiento es el mismo.
-\item La tensión nominal en delta del 8221 es \SI{120}{V}, no \SI{220}{V}. Las tensiones de la Tabla~20 se escalaron (Tabla~\ref{tab:tensiones}).
-\item LVSIM no tiene motor de rotor devanado; esos pasos se analizan con la teoría.
-\item El freno electromagnético con pesa se reemplazó por el dinamómetro 8960, que mide el par directamente. La columna $X$ de la Tabla~21 se sustituyó por la posición de la perilla de carga (en \%).
-\item El tacómetro se reemplazó por la salida de velocidad del dinamómetro, acoplado por correa también en vacío (en modo motor de impulsión y sin alimentación, de modo que no aporta par, pero su fricción se suma a la del motor).
-\item La medida de potencia se hizo con dos vatímetros (Aron), como en la guía, con E1/I1 y E2/I2 de la DAI.
-\end{enumerate}
-
-\subsection{Actividad 1.1: resistencia de los devanados}
-Con los multímetros virtuales en función de óhmetro se midieron las tres fases. Las tres marcaron \SI{14,00}{\ohm} (Fig.~\ref{fig:a11}a--b), con desviación de \Rdesv~\% entre fases, dentro de la tolerancia de la guía. Entre las líneas 1 y 2 el óhmetro marcó \SI{28,00}{\ohm} en estrella y \SI{9,333}{\ohm} en delta (Fig.~\ref{fig:a11}c--d), exactamente $2R$ y $2R/3$.
-
-Como comprobación se aplicó la salida de CC variable a la fase 1--4 y se midieron tensión y corriente con E1 e I1 en modo CC (Fig.~\ref{fig:a11vi}, Tabla~\ref{tab:vi}). El cociente $V/I$ varía entre \Rvimin\ y \Rvimax~\si{\ohm}; la pendiente de la recta de ajuste es \Rvi~\si{\ohm} con intercepto de \Rinter~\si{V}.
-
-\begin{figure*}[!t]
-\centering
-\includegraphics[width=0.8\textwidth]{figuras/lvsim/a11_ohmetro.png}
-\caption{Actividad 1.1 en LVSIM. Óhmetros sobre las fases (a) 1--4 y 2--5, (b) 1--4 y 3--6; resistencia entre líneas 1--2 con el estator en (c) estrella y (d) delta.}
-\label{fig:a11}
-\end{figure*}
+\subsection{Configuración del modelo}
+Los ensayos se reprodujeron en LVSIM--EMS \cite{lvsim} con red de \num{120}/\SI{208}{V} y \SI{60}{Hz}, la fuente de alimentación 8821, la interfaz de adquisición de datos 9063 con su ventana de medición, el motor de inducción de jaula 8221 y el motor de impulsión/dinamómetro 8960 (Fig.~\ref{fig:lvsimmod}). El dinamómetro se acopló al motor con la correa dentada; en modo dinamómetro hace de freno y sus salidas de par y velocidad entran a la interfaz, así que también cumple la función del tacómetro. La potencia se midió con dos vatímetros (Aron) formados con las funciones PQS de la interfaz: $W_1=E_1I_1$ con $E_1=V_{AC}$ y $W_2=E_2I_2$ con $E_2=V_{BC}$. Cada lectura es el promedio de cinco o seis valores de la ventana de medición. Las adaptaciones frente a la guía fueron:
+\begin{itemize}
+\item LVSIM no tiene el DL\,1021 sino el 8221, de \SI{200}{W} y cuatro polos. Sus magnitudes absolutas no se comparan con las del banco; sí la forma de las curvas, la relación entre estrella y delta y el reparto de las pérdidas.
+\item La tensión nominal en delta del 8221 es \SI{120}{V}; las tensiones de la Tabla~20 se escalaron (Tabla~\ref{tab:tensiones}).
+\item El simulador no tiene motor de rotor devanado, así que esos pasos se analizan con la teoría.
+\item El freno con pesa se reemplazó por el dinamómetro, que mide el par directamente. La columna $X$ de la Tabla~21 se sustituyó por la posición de la perilla de carga (\%).
+\item En vacío el dinamómetro quedó acoplado en modo motor de impulsión y sin alimentación: no aporta par, pero su fricción se suma a la del motor.
+\end{itemize}
+Antes de cada cambio de conexión se apagó la fuente. La disposición de los módulos, los colores de los cables (naranja, verde y azul para las fases $a$, $b$ y $c$) y la configuración de los medidores son propios de este grupo.
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=\columnwidth]{figuras/lvsim/a11_voltamperimetrico.png}
-\caption{Método voltímetro-amperímetro en CC sobre la fase 1--4 en LVSIM: (a) banco, (b) lectura de E1 e I1 en CC con la perilla de la fuente al \SI{10}{\percent}.}
-\label{fig:a11vi}
+\includegraphics[width=\columnwidth]{figuras/lvsim/equipos_lvsim.png}
+\caption{Módulos de LVSIM--EMS usados en la simulación: (a) motor de impulsión/dinamómetro 8960, (b) motor de jaula 8221, (c) fuente 8821 y (d) interfaz de adquisición 9063 \cite{lvsim}.}
+\label{fig:lvsimmod}
 \end{figure}
+
+\subsection{Resistencia de los devanados}
+Con los multímetros virtuales en función de óhmetro se midieron los tres devanados: los tres dieron \SI{14,00}{\ohm}, con diferencia nula entre fases porque el modelo los define idénticos. Entre las líneas 1 y 2 se leyeron \SI{28,00}{\ohm} con los puentes de estrella y \SI{9,333}{\ohm} con los de delta, exactamente $2R$ y $2R/3$ (Fig.~\ref{fig:sima1}a). Como comprobación, el devanado 1--4 se alimentó con la salida variable de CC a través de la entrada I1 de la interfaz, con la tensión medida por E1 sobre sus bornes (Fig.~\ref{fig:sima1}b). En seis niveles de corriente, de \num{0,187} a \SI{1,109}{A}, el cociente $V/I$ varió entre \Rvimin\ y \Rvimax~\si{\ohm} (Tabla~\ref{tab:vi}). El simulador no varía la resistencia con la temperatura.
 
 \begin{table}[!t]
 \centering
-\caption{Método voltímetro-amperímetro en CC (fase 1--4, LVSIM)}
+\caption{Simulación: método voltímetro--amperímetro en CC (devanado 1--4)}
 \label{tab:vi}
 \footnotesize
 \begin{tabular}{@{}ccc@{}}
 \toprule
-$V$ [V] & $I$ [A] & $R=V/I$ [\si{\ohm}] \\
+$V$ (V) & $I$ (A) & $R=V/I$ (\si{\ohm}) \\
 \midrule
-\csname @@input\endcsname calculos/salidas/tab_resistencia_cc.tex 
+\csname @@input\endcsname calculos/salidas/tab_resistencia_cc.tex
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Actividad 1.2: puesta en operación}
-El motor se conectó en estrella y se alimentó al 100, 80 y 60~\% de \SI{208}{V}; luego se repitió en delta con \SI{120}{V} como tensión nominal (Fig.~\ref{fig:a12}a--b). Para la secuencia se apagó la fuente, se intercambiaron L1 y L2 (secuencia BAC) y, después, L2 y L3 (BCA) (Fig.~\ref{fig:a12}c). La Tabla~\ref{tab:op} resume las corridas. El signo de la velocidad entregado por el dinamómetro indica el sentido de giro: positivo para la secuencia ABC (sentido directo) y negativo para el inverso.
+\subsection{Puesta en operación}
+El motor se conectó en estrella y se alimentó al 100, 80 y \SI{60}{\percent} de \SI{208}{V}; luego se conectó en delta con \SI{120}{V} como tensión nominal (Fig.~\ref{fig:sima1}c--d). Para el sentido de giro se apagó la fuente, se intercambiaron $L_1$ y $L_2$ (secuencia $bac$) y, después, $L_2$ y $L_3$ (secuencia $bca$) (Fig.~\ref{fig:sima1}e). El signo de la velocidad que entrega el dinamómetro indica el sentido: positivo con la secuencia $abc$ (directo) y negativo en el inverso. La Tabla~\ref{tab:op} resume las corridas.
+
+Además se tomó una sola lectura breve con el estator en delta a \SI{208}{V}, para cuantificar el error de usar la tensión de estrella en delta: la corriente de línea subió a \DdosIL~\si{A}, es decir, \DdosIF~\si{A} por bobina, por encima de los \SI{1,5}{A} del devanado, y la potencia en vacío llegó a \DdosP~\si{W}.
 
 \begin{table*}[!t]
 \centering
-\caption{Puesta en operación del motor de jaula 8221 en vacío (LVSIM)}
+\caption{Simulación: puesta en operación del motor 8221 en vacío}
 \label{tab:op}
 \footnotesize
-\begin{tabular}{@{}cccccccccc@{}}
+\begin{tabular}{@{}ccccccccc@{}}
 \toprule
-Conexión & Secuencia & \% de $V_n$ & $V_L$ [V] & $I_L$ [A] & $P=P_{W1}+P_{W2}$ [W] & $n$ [\si{\rpm}] & $s$ [\%] & Sentido \\
+Conexión & Secuencia & \% $V_N$ & $V_L$ (V) & $I_L$ (A) & $P=W_1+W_2$ (W) & $n$ (\si{\rpm}) & $s$ (\%) & Sentido \\
 \midrule
-\csname @@input\endcsname calculos/salidas/tab_operacion.tex 
+\csname @@input\endcsname calculos/salidas/tab_operacion.tex
 \bottomrule
 \end{tabular}
 \end{table*}
 
 \begin{figure*}[!p]
 \centering
-\subfloat[Estrella a \SI{208}{V}, secuencia ABC: banco con el dinamómetro como tacómetro y lecturas.\label{fig:a12y}]{\includegraphics[width=0.86\textwidth]{figuras/lvsim/a12_estrella.png}}\\
-\subfloat[Delta a \SI{120}{V}, secuencia ABC: banco y lecturas.\label{fig:a12d}]{\includegraphics[width=0.86\textwidth]{figuras/lvsim/a12_delta.png}}\\
-\subfloat[Estrella a \SI{208}{V} con L1 y L2 intercambiadas ($n=\SI{-1773}{\rpm}$) y luego también L2 y L3 ($n=\SI{1773}{\rpm}$).\label{fig:a12s}]{\includegraphics[width=0.86\textwidth]{figuras/lvsim/a12_sentido.png}}
-\caption{Actividad 1.2 (puesta en operación) en LVSIM.}
-\label{fig:a12}
+\subfloat[Resistencia con óhmetro: fases 1--4 y 2--5, fases 1--4 y 3--6, y entre líneas en estrella y en delta.]{\includegraphics[width=0.6\textwidth]{figuras/lvsim/a11_ohmetro.png}}\hfill
+\subfloat[Método voltímetro--amperímetro en CC.]{\includegraphics[width=0.37\textwidth]{figuras/lvsim/a11_voltamperimetrico.png}}\\
+\subfloat[Estrella a \SI{208}{V}, secuencia $abc$.]{\includegraphics[width=0.49\textwidth]{figuras/lvsim/a12_estrella.png}}\hfill
+\subfloat[Delta a \SI{120}{V}, secuencia $abc$.]{\includegraphics[width=0.49\textwidth]{figuras/lvsim/a12_delta.png}}\\
+\subfloat[Estrella a \SI{208}{V}: $L_1\leftrightarrow L_2$ ($n=\SI{-1773}{\rpm}$) y luego también $L_2\leftrightarrow L_3$ ($n=\SI{1773}{\rpm}$).]{\includegraphics[width=0.72\textwidth]{figuras/lvsim/a12_sentido.png}}
+\caption{Actividad 1 en LVSIM--EMS: montaje y ventana de medición.}
+\label{fig:sima1}
 \end{figure*}
 
-Además se hizo una sola lectura breve con el estator en delta a \SI{208}{V}, para cuantificar el error de usar la tensión de estrella en delta: la corriente de línea llegó a \DdosIL~\si{A} (\DdosIF~\si{A} por bobina, por encima de los \SI{1,5}{A} marcados en el módulo) y la potencia absorbida en vacío a \DdosP~\si{W}, tres veces la de la conexión correcta.
-
-\subsection{Actividad 2.1: prueba de vacío}
-Con el motor en delta y sin carga se barrió la tensión según la Tabla~\ref{tab:tensiones} (Fig.~\ref{fig:a2v}). La Tabla~\ref{tab:vacio} es la Tabla~20 de la guía adaptada, con columnas para $P_{Cu}$ y la velocidad. Las Figs.~\ref{fig:vacioP} y~\ref{fig:vacioI} son las gráficas pedidas de potencia y corriente contra tensión, y la Fig.~\ref{fig:vacioV2} separa las pérdidas.
-
-\begin{figure*}[!t]
-\centering
-\includegraphics[width=0.9\textwidth]{figuras/lvsim/a2_vacio.png}
-\caption{Actividad 2.1 en LVSIM: (a) banco en delta con dos vatímetros (E1/I1, E2/I2) y dinamómetro acoplado sin carga; (b) lecturas a \SI{120}{V}. $P_{W2}$ es negativo porque el factor de potencia en vacío es menor que 0,5.}
-\label{fig:a2v}
-\end{figure*}
+\subsection{Prueba de vacío}
+Con el motor en delta y sin carga se barrió la tensión según la Tabla~\ref{tab:tensiones}. La Tabla~\ref{tab:vacio} es la Tabla~20 de la guía con dos columnas más, $P_{Cu}$ y la velocidad. A la tensión nominal, \VnomVac~\si{V}, el motor absorbió \InomVac~\si{A} y \PceroNom~\si{W}, con $\cos\theta=\FPnomVac$. Para $V\geq\SI{98}{V}$ el vatímetro $W_2$ marcó negativo, lo que corresponde a $\cos\theta<0{,}5$. Las Figs.~\ref{fig:vacioP} y~\ref{fig:vacioI} son las gráficas que pide la guía, y la Fig.~\ref{fig:vacioV2} separa las pérdidas con la recta de \eqref{eq:pmfe}: el intercepto da $P_m\approx\Pmec$~\si{W} y, a tensión nominal, $P_{fe}\approx\PfeNom$~\si{W}.
 
 \begin{table*}[!t]
 \centering
-\caption{Prueba de vacío del motor 8221 en delta (Tabla 20 adaptada, LVSIM). $R_{est}=\SI{14}{\ohm}$, $I_\phi=I_L/\sqrt3$}
+\caption{Simulación: prueba de vacío del motor 8221 en delta (Tabla 20 adaptada; $R_{est}=\SI{14}{\ohm}$)}
 \label{tab:vacio}
 \footnotesize
 \begin{tabular}{@{}ccccccccc@{}}
 \toprule
-$V_{CA}$ [V] & $I_{CA}$ [A] & $P_{W1}$ [W] & $P_{W2}$ [W] & $P_0$ [W] & $P_{Cu}$ [W] & $P_m+P_{fe}$ [W] & $\cos\theta$ & $n$ [\si{\rpm}] \\
+$V_{CA}$ (V) & $I_{CA}$ (A) & $P_{W1}$ (W) & $P_{W2}$ (W) & $P_0$ (W) & $P_{Cu}$ (W) & $P_m+P_{fe}$ (W) & $\cos\theta$ & $n$ (\si{\rpm}) \\
 \midrule
-\csname @@input\endcsname calculos/salidas/tab_vacio.tex 
+\csname @@input\endcsname calculos/salidas/tab_vacio.tex
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -450,21 +520,21 @@ $V_{CA}$ [V] & $I_{CA}$ [A] & $P_{W1}$ [W] & $P_{W2}$ [W] & $P_0$ [W] & $P_{Cu}$
 \begin{figure}[!t]
 \centering
 \begin{tikzpicture}
-\begin{axis}[lab,xlabel={$V_{CA}$ [V]},ylabel={Potencia [W]},legend pos=north west,ymin=0]
+\begin{axis}[lab,xlabel={$V_{CA}$ (V)},ylabel={Potencia (W)},legend pos=north west,ymin=0]
 \addplot+[mark=*,thick] table[x=V,y=P0]{calculos/salidas/vacio.dat};
 \addplot+[mark=square*,thick] table[x=V,y=Prot]{calculos/salidas/vacio.dat};
 \addplot+[mark=triangle*,thick] table[x=V,y=Pcu]{calculos/salidas/vacio.dat};
 \legend{$P_0$,$P_m+P_{fe}$,$P_{Cu}$}
 \end{axis}
 \end{tikzpicture}
-\caption{Prueba de vacío: potencia de entrada y su descomposición contra la tensión de línea (LVSIM).}
+\caption{Prueba de vacío simulada: potencia de entrada y su descomposición contra la tensión de línea.}
 \label{fig:vacioP}
 \end{figure}
 
 \begin{figure}[!t]
 \centering
 \begin{tikzpicture}
-\begin{axis}[lab,width=0.86\columnwidth,xlabel={$V_{CA}$ [V]},ylabel={$I_{CA}$ [A]},
+\begin{axis}[lab,width=0.86\columnwidth,xlabel={$V_{CA}$ (V)},ylabel={$I_{CA}$ (A)},
   axis y line*=left,ymin=0.8,ymax=1.5]
 \addplot+[mark=*,thick] table[x=V,y=I]{calculos/salidas/vacio.dat};\label{pl:i}
 \end{axis}
@@ -474,170 +544,144 @@ $V_{CA}$ [V] & $I_{CA}$ [A] & $P_{W1}$ [W] & $P_{W2}$ [W] & $P_0$ [W] & $P_{Cu}$
 \addlegendentry{$\cos\theta$}
 \end{axis}
 \end{tikzpicture}
-\caption{Prueba de vacío: corriente de línea y factor de potencia contra la tensión (LVSIM).}
+\caption{Prueba de vacío simulada: corriente de línea y factor de potencia contra la tensión.}
 \label{fig:vacioI}
 \end{figure}
 
 \begin{figure}[!t]
 \centering
 \begin{tikzpicture}
-\begin{axis}[lab,xlabel={$V_{CA}^2$ [V$^2$]},ylabel={$P_m+P_{fe}$ [W]},legend pos=south east,
+\begin{axis}[lab,xlabel={$V_{CA}^2$ (V$^2$)},ylabel={$P_m+P_{fe}$ (W)},legend pos=south east,
   xmin=0,ymin=50,scaled x ticks=base 10:-3,xtick scale label code/.code={$\times10^{3}$}]
 \addplot+[only marks,mark=*] table[x=V2,y=Prot]{calculos/salidas/vacio.dat};
 \addplot+[no marks,thick,dashed] table[x=V2,y=Prot]{calculos/salidas/vacio_ajuste.dat};
-\legend{LVSIM,ajuste ($V\geq\SI{85}{V}$)}
+\legend{Simulación,Recta ($V\geq\SI{85}{V}$)}
 \end{axis}
 \end{tikzpicture}
 \caption{Pérdidas rotacionales contra $V^2$. La extrapolación a $V=0$ da las pérdidas mecánicas, $P_m\approx\Pmec$~\si{W}.}
 \label{fig:vacioV2}
 \end{figure}
 
-\subsection{Actividad 2.2: prueba de carga}
-Con el motor en delta a \SI{120}{V} se aumentó el par del dinamómetro por pasos y, en cada paso, se reajustó la fuente para devolver la tensión a \SI{120}{V}, como pide la guía. La prueba terminó al pasar la corriente nominal en delta (\LVIfD~\si{A}). La Fig.~\ref{fig:a2c} muestra el punto más cercano a esa corriente y la Tabla~\ref{tab:carga} es la Tabla~21 adaptada. La potencia de salida se calculó con \eqref{eq:eta}; difiere en menos de \CerrPm~\si{W} del medidor Pm(T,n) de LVSIM.
-
-\begin{figure*}[!t]
-\centering
-\includegraphics[width=0.9\textwidth]{figuras/lvsim/a2_carga.png}
-\caption{Actividad 2.2 en LVSIM: (a) banco con el dinamómetro como freno, (b) lecturas con corriente cercana a la nominal: $\tau=\SI{1,056}{N.m}$, $n=\SI{1671}{\rpm}$, $P_{out}=\SI{184,8}{W}$.}
-\label{fig:a2c}
-\end{figure*}
+\subsection{Prueba de carga}
+Con el motor en delta a \SI{120}{V} se aumentó el par del dinamómetro por pasos y, en cada paso, se reajustó la fuente para devolver la tensión a \SI{120}{V}, como pide la guía. La prueba terminó al pasar la corriente nominal en delta, \LVIfD~\si{A}. La Tabla~\ref{tab:carga} es la Tabla~21 adaptada, con $P_{out}=\tau\omega$; ese valor coincide con el medidor de potencia mecánica de la interfaz con diferencias menores que \CerrPm~\si{W}. Con corriente nominal (\CnomI~\si{A}) el motor entregó \CnomPout~\si{W} a \Cnomn~\si{\rpm}, con $\tau=\CnomT$~\si{N.m}, $s=\Cnoms$~\% y $\eta=\Cnometa$~\% (Fig.~\ref{fig:sima2}b). La Fig.~\ref{fig:curvascarga} presenta las gráficas que pide la guía.
 
 \begin{table*}[!t]
 \centering
-\caption{Prueba de carga del motor 8221 en delta a \SI{120}{V} (Tabla 21 adaptada, LVSIM)}
+\caption{Simulación: prueba de carga del motor 8221 en delta a \SI{120}{V} (Tabla 21 adaptada)}
 \label{tab:carga}
 \footnotesize
 \begin{tabular}{@{}ccccccccc@{}}
 \toprule
-$I$ [A] & Carga [\%] & $\tau$ [N\,m] & $n$ [\si{\rpm}] & $P_{in}$ [W] & $P_{out}$ [W] & $\eta$ [\%] & $s$ [\%] & $\cos\theta$ \\
+$I$ (A) & Carga (\%) & $\tau$ (N\,m) & $n$ (\si{\rpm}) & $P_{in}$ (W) & $P_{out}$ (W) & $\eta$ (\%) & $s$ (\%) & $\cos\theta$ \\
 \midrule
-\csname @@input\endcsname calculos/salidas/tab_carga.tex 
+\csname @@input\endcsname calculos/salidas/tab_carga.tex
 \bottomrule
 \end{tabular}
 \end{table*}
 
+\begin{figure*}[!t]
+\centering
+\subfloat[Vacío a \SI{120}{V}.]{\includegraphics[width=0.49\textwidth]{figuras/lvsim/a2_vacio.png}}\hfill
+\subfloat[Carga con corriente cercana a la nominal.]{\includegraphics[width=0.49\textwidth]{figuras/lvsim/a2_carga.png}}
+\caption{Actividad 2 en LVSIM--EMS: motor en delta con dos vatímetros y el dinamómetro acoplado.}
+\label{fig:sima2}
+\end{figure*}
+
 \begin{figure}[!t]
 \centering
-\subfloat[Velocidad contra par]{%
+\subfloat[Velocidad contra par.]{%
 \begin{tikzpicture}
-\begin{axis}[lab,width=0.52\columnwidth,height=0.48\columnwidth,xlabel={$\tau$ [N\,m]},ylabel={$n$ [\si{\rpm}]}]
+\begin{axis}[lab,width=0.52\columnwidth,height=0.48\columnwidth,xlabel={$\tau$ (N\,m)},ylabel={$n$ (\si{\rpm})}]
 \addplot+[mark=*,thick] table[x=tau,y=n]{calculos/salidas/carga.dat};
 \end{axis}
 \end{tikzpicture}}\hfill
-\subfloat[Velocidad contra corriente]{%
+\subfloat[Velocidad contra corriente.]{%
 \begin{tikzpicture}
-\begin{axis}[lab,width=0.52\columnwidth,height=0.48\columnwidth,xlabel={$I$ [A]},ylabel={$n$ [\si{\rpm}]}]
+\begin{axis}[lab,width=0.52\columnwidth,height=0.48\columnwidth,xlabel={$I$ (A)},ylabel={$n$ (\si{\rpm})}]
 \addplot+[mark=*,thick] table[x=I,y=n]{calculos/salidas/carga.dat};
 \end{axis}
 \end{tikzpicture}}\\
-\subfloat[Eficiencia contra par]{%
+\subfloat[Eficiencia contra par.]{%
 \begin{tikzpicture}
-\begin{axis}[lab,width=0.52\columnwidth,height=0.48\columnwidth,xlabel={$\tau$ [N\,m]},ylabel={$\eta$ [\%]},ymin=0]
+\begin{axis}[lab,width=0.52\columnwidth,height=0.48\columnwidth,xlabel={$\tau$ (N\,m)},ylabel={$\eta$ (\%)},ymin=0]
 \addplot+[mark=*,thick] table[x=tau,y=eta]{calculos/salidas/carga.dat};
 \end{axis}
 \end{tikzpicture}}\hfill
-\subfloat[Eficiencia contra $P_{out}$]{%
+\subfloat[Eficiencia contra $P_{out}$.]{%
 \begin{tikzpicture}
-\begin{axis}[lab,width=0.52\columnwidth,height=0.48\columnwidth,xlabel={$P_{out}$ [W]},ylabel={$\eta$ [\%]},ymin=0]
+\begin{axis}[lab,width=0.52\columnwidth,height=0.48\columnwidth,xlabel={$P_{out}$ (W)},ylabel={$\eta$ (\%)},ymin=0]
 \addplot+[mark=*,thick] table[x=Pout,y=eta]{calculos/salidas/carga.dat};
 \end{axis}
 \end{tikzpicture}}\\
-\subfloat[Deslizamiento contra $P_{out}$]{%
+\subfloat[Deslizamiento contra $P_{out}$.]{%
 \begin{tikzpicture}
-\begin{axis}[lab,width=0.52\columnwidth,height=0.48\columnwidth,xlabel={$P_{out}$ [W]},ylabel={$s$ [\%]},ymin=0]
+\begin{axis}[lab,width=0.52\columnwidth,height=0.48\columnwidth,xlabel={$P_{out}$ (W)},ylabel={$s$ (\%)},ymin=0]
 \addplot+[mark=*,thick] table[x=Pout,y=s]{calculos/salidas/carga.dat};
 \end{axis}
 \end{tikzpicture}}\hfill
-\subfloat[Factor de potencia contra $P_{out}$]{%
+\subfloat[Factor de potencia contra $P_{out}$.]{%
 \begin{tikzpicture}
-\begin{axis}[lab,width=0.52\columnwidth,height=0.48\columnwidth,xlabel={$P_{out}$ [W]},ylabel={$\cos\theta$}]
+\begin{axis}[lab,width=0.52\columnwidth,height=0.48\columnwidth,xlabel={$P_{out}$ (W)},ylabel={$\cos\theta$}]
 \addplot+[mark=*,thick] table[x=Pout,y=fp]{calculos/salidas/carga.dat};
 \end{axis}
 \end{tikzpicture}}
-\caption{Curvas de la prueba de carga (LVSIM, delta, \SI{120}{V}).}
+\caption{Curvas de la prueba de carga simulada (8221 en delta, \SI{120}{V}).}
 \label{fig:curvascarga}
 \end{figure}
 
-\FloatBarrier
 % ===========================================================================
 \section{Procedimiento y seguridad}
 \begin{enumerate}
-\item Antes de energizar, leer la placa real de cada motor y anotar tensión, corriente, potencia y velocidad para cada conexión. Confirmar que la tensión de línea elegida corresponde a la conexión (en el DL~1021, \SI{220}{V} en delta o \SI{380}{V} en estrella).
-\item Fijar el motor a la base y comprobar que el eje gire libre y que el acople con el freno esté protegido.
-\item Medir resistencias con el motor desenergizado y sin puentes, y repetir la medida si dos fases difieren más del 3--5~\%.
-\item Arrancar siempre desde tensión cero y subirla gradualmente vigilando la corriente. No superar la corriente nominal de la conexión (en el DL~1021, \SI{4,3}{A} en delta). La Tabla~20 pide \SI{240}{V} en delta, el 109~\% de la nominal; ese punto se toma rápido y solo si la corriente lo permite.
+\item Verificar la placa de ambos motores, el estado de los conductores, la tierra de protección y el acople mecánico con el freno. Con la fuente apagada y en cero, armar el circuito y revisarlo contra el esquema correspondiente.
+\item Medir las resistencias con el motor desenergizado y sin puentes. Repetir la medida si dos fases difieren más del 3--5~\%.
+\item Comprobar que la tensión corresponde a la conexión: en el DL\,1021, \SI{220}{V} en delta o \SI{380}{V} en estrella. Conectar en delta con la tensión de la estrella somete cada devanado a $\sqrt3$ veces su tensión.
+\item Arrancar siempre desde tensión cero y subirla poco a poco vigilando la corriente, sin superar la nominal de la conexión (\SI{4,3}{A} en delta).
 \item Toda modificación del montaje (puentes, intercambio de líneas, rotor abierto o en corto) se hace con la fuente apagada.
-\item Con el rotor devanado abierto el motor no arranca y el estator absorbe la corriente de magnetización; no dejarlo energizado más de lo necesario para medir la tensión en los anillos.
-\item En la prueba de carga, nivelar el freno sin excitación, desplazar la pesa de \SI{2}{cm} en \SI{2}{cm}, mantener la tensión nominal y detenerse al llegar a la corriente nominal.
-\item No tocar el eje, el acople ni la correa con el motor en giro. Usar el tacómetro óptico a distancia.
+\item Con el rotor devanado abierto el motor no arranca y el estator absorbe solo la corriente de magnetización: medir la tensión en los anillos y desenergizar.
+\item En la prueba de vacío, desacoplar el freno si es posible y tomar rápido el punto de \SI{240}{V}.
+\item En la prueba de carga, mantener la tensión nominal, nivelar el freno sin excitarlo, desplazar la pesa de \SI{2}{cm} en \SI{2}{cm} y detenerse al llegar a la corriente nominal.
+\item Para terminar, descargar el freno, bajar la tensión a cero, apagar la fuente y verificar la ausencia de tensión antes de retirar los conductores.
 \end{enumerate}
+Las tensiones del banco representan riesgo de choque eléctrico, y el eje y el acople, de atrapamiento. Deben usarse conductores de seguridad en buen estado, calzado cerrado y gafas, con el área seca y despejada, y no se debe tocar el eje ni el acople con el motor en giro. Ante una lectura inesperada, olor, ruido o calentamiento anormal, se acciona la parada de emergencia y se informa al docente.
 
 % ===========================================================================
 \section{Análisis de resultados}
-\label{sec:analisis}
+El análisis se basa en la simulación en LVSIM y en los cálculos previos del DL\,1021.
 
-\subsection{Resistencia de los devanados}
-Las tres fases del 8221 tienen la misma resistencia, como corresponde a un estator simétrico. El método voltímetro-amperímetro da \Rvi~\si{\ohm}, un 1~\% por encima del óhmetro; el intercepto casi nulo indica que no hay caída de tensión fija en el circuito y que la diferencia se debe a la resolución de los medidores a corrientes bajas. Las medidas entre líneas ($2R$ en estrella, $2R/3$ en delta) comprueban que los puentes estaban bien hechos, una verificación útil antes de energizar en el banco físico. Allí la resistencia será menor: un motor de \SI{1,1}{kW} tiene conductores más gruesos que uno de \SI{200}{W}. Además se medirá a temperatura ambiente; para estimar las pérdidas a temperatura de operación habría que corregir la resistencia por temperatura \cite{ieee112}.
+\emph{Resistencia de los devanados.} Las tres fases del 8221 tienen la misma resistencia, como corresponde a un estator simétrico, y las medidas entre líneas ($2R$ en estrella, $2R/3$ en delta) confirman \eqref{eq:rll}. Estas medidas sirven además para verificar los puentes antes de energizar. El método voltímetro--amperímetro dio un valor apenas mayor que el óhmetro, con una diferencia que se atribuye a la resolución de los medidores con corrientes bajas. En el DL\,1021 se espera una resistencia mucho menor, entre \DLRLo\ y \DLRHi~\si{\ohm}, porque un motor de \SI{1,1}{kW} tiene conductores más gruesos que uno de \SI{200}{W}. Las medidas a temperatura ambiente subestiman las pérdidas en operación; para compararlas con el ensayo en caliente habría que corregirlas por temperatura. Entre los dos motores del banco, el de rotor devanado tendrá la mayor resistencia rotórica: su rotor tiene bobinas de muchas espiras unidas a través de anillos y escobillas, mientras que la jaula son barras gruesas en cortocircuito. Esa resistencia le da más par de arranque y más deslizamiento a plena carga.
 
-Entre los motores, el de rotor devanado tiene una resistencia rotórica medible y mayor que la de la jaula, porque su rotor tiene bobinas de muchas espiras de alambre fino conectadas a través de escobillas y anillos, mientras que la jaula está formada por barras gruesas en cortocircuito. Esa mayor resistencia de rotor le da más par de arranque y más deslizamiento a plena carga.
+\emph{Rotor devanado abierto y en corto.} Aunque no se pudo simular, la teoría permite anticipar el comportamiento. Con los anillos abiertos el motor no gira: el campo giratorio existe e induce en el rotor detenido el voltaje $E_{R0}$ a la frecuencia de la red, que se puede medir entre anillos, pero sin corriente rotórica no hay par. Al unir los anillos circula corriente y el motor arranca. Con una resistencia en lugar del corto, el arranque sería más suave y con más par.
 
-\subsection{Puesta en operación}
-\textbf{Rotor devanado (análisis teórico).} Con los anillos abiertos el motor no gira: no circula corriente en el rotor y no hay par. El estator crea igualmente el campo giratorio, que induce en el rotor detenido la tensión $E_{R0}$ a la frecuencia de la red, como en un transformador en vacío; por eso sí hay tensión entre los anillos. Al unir los anillos circula corriente rotórica y el motor arranca. Si en lugar de un corto se conectara una resistencia trifásica, el arranque sería más suave y con más par.
+\emph{Sentido de giro.} Con la secuencia $abc$ la velocidad fue positiva. Al intercambiar $L_1$ y $L_2$ se volvió negativa ($\SI{-1773}{\rpm}$), y al intercambiar después $L_2$ y $L_3$ volvió a ser positiva. Cada intercambio de dos líneas invierte la secuencia de fases y, con ella, el sentido del campo giratorio; dos intercambios sucesivos restauran la secuencia original, porque $bca$ es una rotación de $abc$. Las magnitudes eléctricas no cambiaron; solo se intercambiaron las lecturas de los dos vatímetros.
 
-\textbf{Sentido de giro.} En LVSIM, con la secuencia ABC la velocidad es positiva; al intercambiar L1 y L2 se vuelve negativa ($-1773$~\si{\rpm}), y al intercambiar después L2 y L3 vuelve a ser positiva. La razón es que cada intercambio de dos líneas invierte la secuencia de fases y con ella el sentido del campo giratorio; dos intercambios sucesivos restauran la secuencia original (BCA es una rotación de ABC). Las magnitudes eléctricas no cambian, solo se intercambian las lecturas de los dos vatímetros. En el banco físico esto se verificará en ambos motores y en ambas conexiones.
+\emph{Estrella frente a delta y tensión reducida.} En estrella a \SI{208}{V} y en delta a \SI{120}{V} el motor tuvo la misma potencia, velocidad y deslizamiento. La corriente de línea en delta fue $1{,}308/0{,}753=1{,}74\approx\sqrt3$ veces la de estrella: en ambos casos cada bobina recibe \SI{120}{V}. La lectura en delta a \SI{208}{V} muestra el riesgo de equivocar la conexión: \DdosIF~\si{A} por bobina y más del triple de potencia en vacío, por la saturación del núcleo. Al bajar la tensión al \SI{60}{\percent}, la velocidad cayó de 1773 a unos \SI{1720}{\rpm} y el deslizamiento pasó de \num{1,5} a cerca de \SI{4,5}{\percent}: como el par disponible varía con $V^2$, el motor necesita más deslizamiento para mover la misma fricción. El deslizamiento se multiplicó por unas tres veces, cerca del factor 2,78 previsto.
 
-\textbf{Tensión reducida.} En los dos casos la velocidad baja de \SI{1773}{\rpm} al 100~\% a unos \SI{1720}{\rpm} al 60~\%; el deslizamiento pasa de 1,5~\% a cerca de 4,5~\%. Como el par disponible es proporcional a $V^2$, el motor necesita más deslizamiento para producir el mismo par de fricción. La tendencia es la que predice la Sección~VII-F, aunque los valores son menores porque el par en vacío es solo el de fricción. La corriente baja al reducir la tensión porque baja la corriente de magnetización.
-
-\textbf{Estrella frente a delta.} El motor en estrella a \SI{208}{V} y en delta a \SI{120}{V} tiene la misma potencia, velocidad y deslizamiento, y la corriente de línea en delta es $\sqrt3$ veces la de estrella ($1{,}308/0{,}753=1{,}74$). En ambos casos cada bobina recibe \SI{120}{V}, así que el motor opera igual. La lectura en delta a \SI{208}{V} muestra lo contrario: \DdosIF~\si{A} por bobina y el triple de potencia en vacío, por saturación del núcleo. En el banco físico, el DL~1021 debe ir en delta a \SI{220}{V} y en estrella a \SI{380}{V}.
-
-\subsection{Prueba de vacío}
-A tensión nominal el motor absorbe \InomVac~\si{A} con $\cos\theta=\FPnomVac$. La corriente en vacío es el 66~\% de la nominal (\LVIfD~\si{A}): es casi toda corriente de magnetización, necesaria porque el circuito magnético tiene entrehierro. Por eso el factor de potencia en vacío es bajo y el segundo vatímetro marca negativo para $V\geq\SI{98}{V}$, lo que corresponde a $\cos\theta<0{,}5$.
-
-De los \PceroNom~\si{W} absorbidos a \VnomVac~\si{V}, \PcuNom~\si{W} son pérdidas en el cobre del estator y \ProtNom~\si{W} pérdidas rotacionales. La recta de la Fig.~\ref{fig:vacioV2} separa estas últimas en \Pmec~\si{W} mecánicas y \PfeNom~\si{W} en el hierro, con lo cual se cumple la igualdad de la guía:
+\emph{Prueba de vacío.} En vacío la corriente fue el \SI{66}{\percent} de la nominal y el factor de potencia de \FPnomVac: la corriente es casi toda de magnetización, necesaria por el entrehierro. Por eso el segundo vatímetro marcó negativo en la parte alta del barrido. De los \PceroNom~\si{W} absorbidos a tensión nominal, \PcuNom~\si{W} son pérdidas en el cobre del estator, \Pmec~\si{W} mecánicas y \PfeNom~\si{W} en el hierro, de modo que se cumple lo que plantea la guía:
 \[
 P_0=P_{Cu}+P_m+P_{fe}=\PcuNom+\Pmec+\PfeNom\approx\PceroNom~\si{W}.
 \]
-Las pérdidas mecánicas resultan altas porque el dinamómetro quedó acoplado por correa y su fricción se suma a la del motor; en el banco físico se debe desacoplar el freno para la prueba de vacío. Para tensiones por debajo de unos \SI{75}{V} la corriente vuelve a subir: el par de fricción obliga a aumentar el deslizamiento ($n$ cae a \SI{1649}{\rpm} a \SI{55}{V}) y crece la componente activa de la corriente del rotor. Esos puntos se excluyeron del ajuste lineal.
+Las pérdidas mecánicas resultaron altas porque el dinamómetro quedó acoplado y su fricción se suma a la del motor; en el banco conviene desacoplar el freno. Por debajo de unos \SI{75}{V} la corriente vuelve a subir: el par de fricción obliga a aumentar el deslizamiento ($n$ cae a \SI{1649}{\rpm} a \SI{55}{V}) y crece la componente activa de la corriente del rotor. Esos puntos se excluyeron de la recta. Con los valores a tensión nominal, la impedancia de vacío por fase es $Z_0=V_\phi/I_\phi=\Zvac$~\si{\ohm}, casi toda $X_1+X_M$ porque $R_1=\SI{14}{\ohm}$, y la resistencia de pérdidas en el núcleo es $R_C\approx V_\phi^2/(P_{fe}/3)\approx\Rfe$~\si{\ohm}. Para completar el circuito equivalente faltaría la prueba de rotor bloqueado, que la guía no incluye.
 
-Con los valores a tensión nominal, la rama de magnetización vista por fase vale aproximadamente $Z_0=V_\phi/I_\phi=\Zvac$~\si{\ohm}, que es casi toda $X_1+X_M$ porque $R_1=\SI{14}{\ohm}$, y $R_c\approx V_\phi^2/(P_{fe}/3)\approx\Rfe$~\si{\ohm}. Para completar el circuito equivalente faltaría la prueba de rotor bloqueado, que la guía no incluye.
+\emph{Prueba de carga.} Al aumentar la carga, la velocidad bajó casi linealmente de \Cnvac\ a \Cnomn~\si{\rpm} con corriente nominal. Es la zona estable de la curva par--velocidad, donde el par es proporcional al deslizamiento. La regulación de velocidad fue de \CRV~\%, del mismo orden que el \DLRVest~\% estimado para el DL\,1021. La eficiencia creció rápido con la carga, porque las pérdidas fijas pesan menos, y se aplanó cerca del \SI{57}{\percent}. El factor de potencia pasó de \num{0,37} en vacío a \Cnomfp: al crecer la componente activa de la corriente, la reactiva de magnetización pesa menos. El deslizamiento creció casi en proporción a la potencia entregada, como indica $P_{Cu2}=sP_{AG}$. El balance de potencias con corriente nominal, según \eqref{eq:flujo1}--\eqref{eq:flujo3}, da $P_{Cu1}=\CnomPcuu$~\si{W}, $P_{fe}=\PfeNom$~\si{W}, $P_{AG}=\CnomPag$~\si{W}, $P_{Cu2}=\CnomPcud$~\si{W} y $P_m=\Pmec$~\si{W}. La suma con $P_{out}$ difiere de $P_{in}$ en \CnomResto~\si{W}, un \SI{2}{\percent} de la entrada, porque las pérdidas mecánicas y en el hierro se tomaron de la prueba de vacío.
 
-\subsection{Prueba de carga}
-Al aumentar la carga, la velocidad baja casi linealmente de \Cnvac~\si{\rpm} a \Cnomn~\si{\rpm} con corriente nominal (Fig.~\ref{fig:curvascarga}a). Esta es la zona estable de la curva par-velocidad, cerca de $n_s$, donde el par es proporcional al deslizamiento. La regulación de velocidad, con \eqref{eq:rv}, es \CRV~\%. La corriente sube desde el valor de vacío porque se suma la componente activa que exige el par (Fig.~\ref{fig:curvascarga}b).
+\emph{Comparación con la placa.} La placa del 8221 indica \SI{200}{W} a \SI{1685}{\rpm} con \SI{1,14}{A}, equivalentes a \LVIfD~\si{A} en delta. En la simulación, con esa corriente el motor entregó \CnomPout~\si{W} a \Cnomn~\si{\rpm}, y los \SI{200}{W} se alcanzaron con unos \SI{2,08}{A}. La eficiencia simulada (\Cnometa~\%) es menor que la de placa (\LVeta~\%), en parte por la fricción del dinamómetro acoplado. En el último punto la potencia de salida (\CultPout~\si{W}) superó los \SI{175}{W} del dinamómetro como freno: en el banco se deben respetar también los límites del freno.
 
-Con corriente nominal (\CnomI~\si{A}) el motor entrega \CnomPout~\si{W}, con $\tau=\CnomT$~\si{N.m}, $s=\Cnoms$~\% y $\eta=\Cnometa$~\%. La eficiencia crece rápido con la carga, porque las pérdidas fijas pesan menos, y se aplana hacia el \SI{57}{\percent} (Fig.~\ref{fig:curvascarga}c--d). El factor de potencia pasa de 0,37 en vacío a \Cnomfp\ con corriente nominal (Fig.~\ref{fig:curvascarga}f): al crecer la componente activa de la corriente, la reactiva de magnetización pesa menos. El deslizamiento crece de forma casi proporcional a la potencia entregada (Fig.~\ref{fig:curvascarga}e), como lo indica $P_{Cu2}=sP_{AG}$.
+\emph{Características del motor de jaula.} Las curvas muestran por qué es el motor más usado. Primero, su velocidad es casi constante: entre vacío y plena carga cambia menos del \SI{6}{\percent}. Segundo, su eficiencia y su factor de potencia mejoran con la carga hasta valores aceptables cerca del punto nominal. Tercero, se ajusta solo a la carga aumentando el deslizamiento, sin ningún control externo. A eso se suma la ausencia de escobillas y anillos. El motor de rotor devanado se comporta igual cuando sus anillos están en corto; su ventaja es poder modificar la resistencia del rotor, a cambio de más costo y mantenimiento.
 
-El balance de potencias con corriente nominal, usando \eqref{eq:flujo1}--\eqref{eq:flujo2}, es: $P_{Cu1}=\CnomPcuu$~\si{W}, $P_{fe}=\PfeNom$~\si{W}, $P_{AG}=\CnomPag$~\si{W}, $P_{Cu2}=sP_{AG}=\CnomPcud$~\si{W} y $P_m=\Pmec$~\si{W}. La suma con $P_{out}$ difiere de $P_{in}$ en \CnomResto~\si{W}, un 2~\% de la entrada. La diferencia se atribuye a que las pérdidas mecánicas se tomaron de la prueba de vacío y a que las del hierro bajan un poco con carga por la caída de tensión en el estator.
+\emph{Frecuencia del rotor.} Con \eqref{eq:fr}, la frecuencia del rotor del 8221 fue de unos \SI{0,9}{Hz} en vacío y de \SI{4,2}{Hz} con corriente nominal, frente a \SI{60}{Hz} con el rotor bloqueado. En el DL\,1021 a plena carga sería de unos \DLfrSes~\si{Hz}. En el motor de rotor devanado esta frecuencia se podría observar en los anillos: es igual a la de la red con el rotor detenido y disminuye a medida que el motor acelera.
 
-\subsection{Comparación con la placa}
-La placa del 8221 indica \SI{200}{W} a \SI{1685}{\rpm} y \SI{1,14}{A} (en estrella, equivalente a \LVIfD~\si{A} en delta). En LVSIM, con esa corriente el motor entrega \CnomPout~\si{W} a \Cnomn~\si{\rpm}, y los \SI{200}{W} se alcanzan a unos \SI{2,08}{A} y \SI{1660}{\rpm}. La eficiencia simulada (\Cnometa~\%) es menor que la de placa (\LVeta~\%). Una parte de la diferencia es la fricción del dinamómetro acoplado y otra, el modelo del simulador; en todo caso, la placa da valores nominales de diseño y el ensayo da los del equipo concreto. En el último punto la salida (\CultPout~\si{W}) superó los \SI{175}{W} del dinamómetro como freno; en el banco físico se deben respetar los límites del freno además de los del motor.
+\emph{Observaciones sobre la guía.} El cuestionario se titula ``Transformadores Eléctricos'', aunque su contenido es de motores de inducción. La guía no indica la referencia del motor de rotor devanado ni la masa de la pesa del freno, necesarias para calcular el par con $\tau=mgX$. La expresión ``pérdidas en el marco del estator'' se interpreta como pérdidas en el núcleo. La Tabla~20 empieza en \SI{240}{V}, por encima de la tensión nominal en delta del DL\,1021.
 
-\subsection{Por qué el motor de jaula es el más usado}
-Las curvas muestran tres características. Primera, velocidad casi constante: entre vacío y plena carga la velocidad cambia menos del \SI{6}{\percent}. Segunda, eficiencia y factor de potencia que mejoran con la carga hasta valores aceptables cerca del punto nominal. Tercera, comportamiento estable: el motor se ajusta solo a la carga, aumentando el deslizamiento sin control externo. A eso se suma la ausencia de escobillas y anillos. El motor de rotor devanado se comporta igual cuando sus anillos están en corto; su ventaja es poder modificar la resistencia rotórica, a cambio de más costo y mantenimiento.
-
-\subsection{Frecuencia del rotor}
-Con \eqref{eq:fr} y los datos de LVSIM, la frecuencia del rotor es de \SI{0,9}{Hz} en vacío ($s=1{,}5$~\%) y de unos \SI{4,2}{Hz} con corriente nominal ($s=\Cnoms$~\%), frente a \SI{60}{Hz} con rotor bloqueado. En el motor de rotor devanado esta frecuencia se podría observar en los anillos: es igual a la de la red con el rotor detenido y disminuye a medida que el motor acelera.
-
-\subsection{Observaciones sobre la guía}
-\begin{itemize}
-\item El cuestionario se titula ``Transformadores Eléctricos''; parece copiado de la práctica anterior. El contenido corresponde a motores de inducción.
-\item La guía no indica la referencia del motor de rotor devanado; se supuso el DL~1022.
-\item En la lista de pérdidas de la prueba de vacío, ``pérdidas en el marco del estator'' se interpreta como pérdidas en el núcleo (hierro) del estator.
-\item La Tabla~20 empieza en \SI{240}{V}, por encima de la tensión nominal en delta del DL~1021 (\SI{220}{V}).
-\item La Tabla~21 pide $X$ [m], pero la guía no da la masa de la pesa ni el brazo del freno; se deben leer en el banco para calcular $\tau=mgX$.
-\item Los datos de catálogo del DL~1021 son para \SI{50}{Hz}; en Colombia se opera a \SI{60}{Hz} y la velocidad será un 20~\% mayor.
-\end{itemize}
-
+\FloatBarrier
 % ===========================================================================
 \section{Conclusiones}
-\begin{itemize}
-\item La resistencia por fase del motor simulado es de \SI{14}{\ohm} en las tres fases, y las medidas entre líneas ($2R$ en estrella, $2R/3$ en delta) confirman la teoría y sirven para verificar los puentes antes de energizar.
-\item El sentido de giro depende solo de la secuencia de fases: un intercambio de dos líneas lo invierte y un segundo intercambio lo restaura, sin cambiar las magnitudes eléctricas.
-\item La conexión correcta depende de la tensión de cada bobina: el motor en delta a \SI{120}{V} opera igual que en estrella a \SI{208}{V}. Alimentar en delta con la tensión de estrella eleva la corriente por bobina por encima de su valor nominal y triplica las pérdidas en vacío.
-\item Al reducir la tensión el deslizamiento aumenta, porque el par disponible varía con $V^2$, tal como predice la teoría.
-\item En vacío la corriente es principalmente de magnetización y el factor de potencia es bajo (0,37). La potencia absorbida (\PceroNom~\si{W}) se reparte en \PcuNom~\si{W} de cobre, \Pmec~\si{W} mecánicas y \PfeNom~\si{W} de hierro, y la suma coincide con $P_0$, como plantea la guía.
-\item Con carga nominal el motor simulado entrega \CnomPout~\si{W} con deslizamiento de \Cnoms~\%, eficiencia de \Cnometa~\% y regulación de velocidad de \CRV~\%. La eficiencia es menor que la de placa porque la fricción del dinamómetro acoplado se suma a las pérdidas.
-\item Estos resultados servirán de referencia para el informe final: allí se compararán con los del DL~1021 y el motor de rotor devanado, que trabajan a otra escala de potencia y con 2 polos.
-\end{itemize}
+Los cálculos previos muestran que el DL\,1021 es una máquina de dos polos que a \SI{60}{Hz} girará cerca de \SI{3440}{\rpm} con carga nominal y \SI{3590}{\rpm} en vacío, y que cada devanado trabaja con unos \SI{220}{V} y \SI{2,5}{A} en las dos conexiones. De allí salen los límites prácticos del ensayo: \SI{220}{V} y \SI{4,3}{A} en delta, un par nominal cercano a \DLTsesenta~\si{N.m} y una resistencia por fase esperada entre \DLRLo\ y \DLRHi~\si{\ohm}.
+
+La simulación en LVSIM confirmó cualitativamente lo previsto. El sentido de giro depende solo de la secuencia de fases: un intercambio de dos líneas lo invierte y un segundo lo restaura. La conexión correcta depende de la tensión de cada bobina: en delta a \SI{120}{V} el motor opera igual que en estrella a \SI{208}{V}, mientras que en delta a \SI{208}{V} la corriente por bobina supera la nominal. Al reducir la tensión, el deslizamiento aumenta porque el par disponible varía con $V^2$.
+
+En vacío la corriente es principalmente de magnetización y el factor de potencia es bajo. La potencia absorbida se separó en pérdidas en el cobre, mecánicas y en el hierro, cuya suma coincide con $P_0$, como plantea la guía. Con carga nominal, el motor simulado entregó \CnomPout~\si{W} con deslizamiento de \Cnoms~\%, eficiencia de \Cnometa~\% y regulación de velocidad de \CRV~\%. Su velocidad casi constante y su ajuste automático a la carga explican por qué el motor de jaula es el más usado en la industria.
+
+La diferencia de escala entre el 8221 de LVSIM y el DL\,1021 indica que en el banco físico las corrientes y potencias serán varias veces mayores, la resistencia por fase menor y la velocidad cercana a \SI{3600}{\rpm}. En todos los ensayos, conectar la tierra de protección, energizar en forma gradual y modificar el cableado solo con la fuente apagada son condiciones indispensables para trasladar los montajes al banco físico.
 
 % ===========================================================================
 \section{Uso de inteligencia artificial}
@@ -645,18 +689,20 @@ Con \eqref{eq:fr} y los datos de LVSIM, la frecuencia del rotor es de \SI{0,9}{H
 
 % ===========================================================================
 \begin{thebibliography}{99}
-\bibitem{guia} Universidad del Norte, ``Práctica N.º 4: Máquinas de inducción,'' guía del Laboratorio de Máquinas Eléctricas I, Barranquilla, Colombia.
-\bibitem{diapositivas} Universidad del Norte, ``Motor de inducción trifásico,'' diapositivas del curso Máquinas Eléctricas I, periodo 202430.
-\bibitem{generador} Universidad del Norte, ``Generador de inducción trifásico: principio de operación, funcionamiento aislado y aplicación en la generación eólica,'' material de apoyo de Máquinas Eléctricas I.
-\bibitem{chapman} S.~J. Chapman, \emph{Máquinas eléctricas}, 5.ª ed. México: McGraw-Hill, 2012, cap.~6.
-\bibitem{fitzgerald} A.~E. Fitzgerald, C.~Kingsley Jr. y S.~D. Umans, \emph{Electric Machinery}, 6.ª ed. Nueva York: McGraw-Hill, 2003.
+\bibitem{chapman} S.~J. Chapman, \emph{Máquinas eléctricas}, 5.\textsuperscript{a} ed. Ciudad de México, México: McGraw-Hill, 2012.
+\bibitem{fraile} J.~Fraile Mora, \emph{Máquinas eléctricas}, 6.\textsuperscript{a} ed. Madrid, España: McGraw-Hill, 2008.
+\bibitem{diapositivas} Universidad del Norte, ``Motor de inducción trifásico,'' diapositivas del curso Máquinas Eléctricas I, 2024.
+\bibitem{generador} Universidad del Norte, ``Generador de inducción trifásico: principio de operación, funcionamiento aislado y aplicación en la generación eólica,'' material de apoyo del curso Máquinas Eléctricas I.
+\bibitem{guia} Universidad del Norte, ``Práctica N.\textsuperscript{o} 4: Máquinas de inducción,'' guía del Laboratorio de Máquinas Eléctricas I.
+\bibitem{dl1021} De Lorenzo S.p.A., ``DL 1021 Three-phase squirrel cage asynchronous motor,'' hoja técnica. [En línea]. Disponible: \url{https://delorenzoglobal.com/prodotto/motore-asincrono-trifase-a-gabbia-di-scoiattolo-3/}. Consultado: 22 de noviembre de 2026.
+\bibitem{dl1022} De Lorenzo S.p.A., ``DL 1022 Slip ring three-phase asynchronous motor,'' hoja técnica. [En línea]. Disponible: \url{https://delorenzoglobal.com/prodotto/motore-asincrono-trifase-ad-anelli-4/}. Consultado: 22 de noviembre de 2026.
+\bibitem{lab3} S.~D. Pinzón Navarro \emph{et~al.}, ``Preinforme de laboratorio: Práctica N.\textsuperscript{o} 3---Máquinas sincrónicas,'' Universidad del Norte, 2026.
+\bibitem{fluke179} Fluke Corporation, ``Fluke 179 True-RMS Digital Multimeter,'' ficha técnica. [En línea]. Disponible: \url{https://www.fluke.com/en-us/product/electrical-testing/digital-multimeters/fluke-179}.
+\bibitem{fluke323} Fluke Corporation, ``Fluke 323 True-RMS Clamp Meter,'' ficha técnica. [En línea]. Disponible: \url{https://www.fluke.com/en-us/product/electrical-testing/clamp-meters/fluke-323}.
 \bibitem{ieee112} \emph{IEEE Standard Test Procedure for Polyphase Induction Motors and Generators}, IEEE Std 112-2017, 2018.
-\bibitem{lvsim} Festo Didactic, ``LVSIM-EMS: Electromechanical Systems Simulation Software.'' [En línea]. Disponible: \url{https://lvsim.labvolt.com}
-\bibitem{lv8221} Festo Didactic (Lab-Volt), ``Four-Pole Squirrel-Cage Induction Motor, model 8221,'' hoja técnica 579491 (120 V, 60 Hz). [En línea]. Disponible: \url{https://www.labvolt.com/downloads/datasheet_579491(50-8221-0)_en_120V_60Hz.pdf}
-\bibitem{dl1021} De Lorenzo, ``DL 1021: Motor asíncrono trifásico de jaula de ardilla,'' catálogo de producto. [En línea]. Disponible: \url{https://delorenzoglobal.com/prodotto/motore-asincrono-trifase-a-gabbia-di-scoiattolo-3/}
-\bibitem{dl1022} De Lorenzo, ``DL 1022: Motor asíncrono trifásico de anillos,'' catálogo de producto. [En línea]. Disponible: \url{https://delorenzoglobal.com/prodotto/motore-asincrono-trifase-ad-anelli-4/}
-\bibitem{img_ksb} KSB Aktiengesellschaft, ``KSB 09 Etanorm mit Motor und Frequenzumrichter,'' Wikimedia Commons, 2009, licencia CC BY-SA 3.0. [En línea]. Disponible: \url{https://commons.wikimedia.org/wiki/File:KSB_09_Etanorm_mit_Motor_und_Frequenzumrichter.jpg}
-\bibitem{img_estator} Zureks, ``Stator and rotor by Zureks,'' Wikimedia Commons, 2008, licencia CC BY-SA 3.0. [En línea]. Disponible: \url{https://commons.wikimedia.org/wiki/File:Stator_and_rotor_by_Zureks.JPG}
+\bibitem{lvsim} Festo Didactic, \emph{LVSIM--EMS: Simulation Software for Electromechanical Systems}, manual del usuario. [En línea]. Disponible: \url{https://lvsim.labvolt.com}.
+\bibitem{img_ksb} KSB Aktiengesellschaft, ``KSB 09 Etanorm mit Motor und Frequenzumrichter,'' Wikimedia Commons, 2009, CC BY-SA 3.0. [En línea]. Disponible: \url{https://commons.wikimedia.org/wiki/File:KSB_09_Etanorm_mit_Motor_und_Frequenzumrichter.jpg}.
+\bibitem{img_estator} Zureks, ``Stator and rotor by Zureks,'' Wikimedia Commons, 2008, CC BY-SA 3.0. [En línea]. Disponible: \url{https://commons.wikimedia.org/wiki/File:Stator_and_rotor_by_Zureks.JPG}.
 \end{thebibliography}
 
 \end{document}

@@ -92,6 +92,38 @@ m("DLtolB", 5, 0)
 # FP y eficiencia minimos compatibles: P_in >= P_out -> FP*eta = P/S
 m("DLfpeta", PDL / (SQ3 * VD * ID), 3)
 
+# estimacion de la resistencia por fase: P_Cu1 entre 3 % y 6 % de S
+IfD = ID / SQ3
+for pct, nombre in ((3, "Lo"), (6, "Hi")):
+    pcu = pct / 100 * SQ3 * VD * ID
+    r = pcu / (3 * IfD ** 2)
+    m(f"DLPcu{nombre}", pcu, 0)
+    m(f"DLR{nombre}", r, 2)
+    m(f"DLRD{nombre}", 2 * r / 3, 2)
+    m(f"DLRY{nombre}", 2 * r, 2)
+    m(f"DLVprueba{nombre}", r * 1.0, 2)      # caida con 1 A de prueba
+# operacion a 60 Hz con la tension de placa
+ns60_ = ns(60, p_dl)
+n0 = 3590.0                                   # vacio estimado (s0 ~ 0,3 %)
+m("DLnVac", n0, 0)
+m("DLsVac", (ns60_ - n0) / ns60_ * 100, 2)
+w60 = n60 * 2 * math.pi / 60
+m("DLTsesenta", PDL / w60, 2)
+m("DLRVest", (n0 - n60) / n60 * 100, 1)
+m("DLflujo", 50 / 60 * 100, 1)
+m("DLfrSes", s50 / 100 * 60, 2)
+# freno: par por kilogramo de pesa, tau = m g X
+g = 9.81
+for k, x in enumerate([2, 4, 6, 8, 10, 12, 14, 16, 18, 20]):
+    m(f"FrX{chr(65+k)}", x, 0)
+    m(f"FrT{chr(65+k)}", g * x / 100, 3)
+m("FrMasaNom", PDL / w60 / (g * 0.20), 2)    # masa que daria tau nominal con X = 20 cm
+# factores de la tabla 20 respecto a 220 V
+for i, vg in enumerate(tabla20):
+    m(f"TvVV{chr(65+i)}", vg / VnD_guia, 3)
+    m(f"TvVVsq{chr(65+i)}", (vg / VnD_guia) ** 2, 3)
+    m(f"TvVF{chr(65+i)}", vg, 0)
+
 # ------------------------------------------------------------ DL 1022
 m("DLdVD", 230, 0)
 m("DLdVY", 400, 0)
