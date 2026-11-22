@@ -39,7 +39,7 @@
 \setcounter{dbltopnumber}{3}
 
 \pgfplotsset{
-  lab/.style={width=\columnwidth,height=0.62\columnwidth,grid=major,
+  lab/.style={width=\columnwidth,height=0.5\columnwidth,grid=major,
     grid style={gray!25},tick label style={font=\footnotesize},
     label style={font=\footnotesize},legend style={font=\scriptsize},
     /pgf/number format/use comma,/pgf/number format/1000 sep={}},
@@ -176,7 +176,7 @@ Para la prueba de carga el eje del motor se acopla a un freno electromagnético.
 \subsection{Instrumentos de medida}
 Se emplean multímetros digitales Fluke 179 de verdadero valor eficaz (hasta \SI{1000}{V} y \SI{10}{A} en CA y CC) \cite{fluke179}, una pinza amperimétrica Fluke 323 (hasta \SI{400}{A} CA) \cite{fluke323}, un tacómetro y un vatímetro trifásico o dos vatímetros en conexión Aron. La Tabla~\ref{tab:equipos} resume el inventario.
 
-\begin{figure}[!t]
+\begin{figure}[!tb]
 \centering
 \subfloat[DL\,1021.]{\includegraphics[height=0.33\columnwidth]{figuras/equipos/dl1021.jpg}}\hfill
 \subfloat[DL\,1022.]{\includegraphics[height=0.33\columnwidth]{figuras/equipos/dl1022.jpg}}\\[2pt]
@@ -280,7 +280,7 @@ Una aplicación típica del motor de jaula es el accionamiento de bombas centrí
 \subsection{Función dentro del sistema}
 La elección del motor de inducción se justifica con las mismas características que se miden en la práctica. Su velocidad casi constante, con deslizamientos de pocos por ciento, mantiene el caudal estable aunque cambie la presión de la red. La jaula de ardilla no tiene escobillas ni anillos, lo que reduce el mantenimiento en ambientes húmedos y permite operar de forma continua. El variador cambia la frecuencia y, por \eqref{eq:ns}, la velocidad sincrónica. Como la potencia de una bomba centrífuga varía aproximadamente con el cubo de la velocidad, una reducción moderada de velocidad ahorra mucha más energía que estrangular el caudal con válvulas. Además, el variador limita la corriente de arranque, que en arranque directo es de 5 a 8 veces la nominal \cite{diapositivas}. La misma máquina, impulsada por encima de $n_s$, se usa como generador en aerogeneradores de velocidad fija tipo~A \cite{generador}.
 
-\begin{figure}[!t]
+\begin{figure}[!tb]
 \centering
 \includegraphics[width=0.85\columnwidth]{figuras/equipos/ksb_etanorm.jpg}
 \caption{Bomba centrífuga accionada por un motor de inducción trifásico con variador de frecuencia. Imagen: KSB AG, CC BY-SA 3.0 \cite{img_ksb}.}
@@ -446,7 +446,7 @@ Los ensayos se reprodujeron en LVSIM--EMS \cite{lvsim} con red de \num{120}/\SI{
 \end{itemize}
 Antes de cada cambio de conexión se apagó la fuente. La disposición de los módulos, los colores de los cables (naranja, verde y azul para las fases $a$, $b$ y $c$) y la configuración de los medidores son propios de este grupo.
 
-\begin{figure}[!t]
+\begin{figure}[!tb]
 \centering
 \includegraphics[width=\columnwidth]{figuras/lvsim/equipos_lvsim.png}
 \caption{Módulos de LVSIM--EMS usados en la simulación: (a) motor de impulsión/dinamómetro 8960, (b) motor de jaula 8221, (c) fuente 8821 y (d) interfaz de adquisición 9063 \cite{lvsim}.}
@@ -475,21 +475,23 @@ El motor se conectó en estrella y se alimentó al 100, 80 y \SI{60}{\percent} d
 
 Además se tomó una sola lectura breve con el estator en delta a \SI{208}{V}, para cuantificar el error de usar la tensión de estrella en delta: la corriente de línea subió a \DdosIL~\si{A}, es decir, \DdosIF~\si{A} por bobina, por encima de los \SI{1,5}{A} del devanado, y la potencia en vacío llegó a \DdosP~\si{W}.
 
-\begin{table*}[!t]
+\begin{table}[!t]
 \centering
 \caption{Simulación: puesta en operación del motor 8221 en vacío}
 \label{tab:op}
-\footnotesize
+\scriptsize
+\setlength{\tabcolsep}{2.2pt}
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{@{}ccccccccc@{}}
 \toprule
 Conexión & Secuencia & \% $V_N$ & $V_L$ (V) & $I_L$ (A) & $P=W_1+W_2$ (W) & $n$ (\si{\rpm}) & $s$ (\%) & Sentido \\
 \midrule
 \csname @@input\endcsname calculos/salidas/tab_operacion.tex
 \bottomrule
-\end{tabular}
-\end{table*}
+\end{tabular}}
+\end{table}
 
-\begin{figure*}[!p]
+\begin{figure*}[!t]
 \centering
 \subfloat[Resistencia con óhmetro: fases 1--4 y 2--5, fases 1--4 y 3--6, y entre líneas en estrella y en delta.]{\includegraphics[width=0.6\textwidth]{figuras/lvsim/a11_ohmetro.png}}\hfill
 \subfloat[Método voltímetro--amperímetro en CC.]{\includegraphics[width=0.37\textwidth]{figuras/lvsim/a11_voltamperimetrico.png}}\\
@@ -503,21 +505,23 @@ Conexión & Secuencia & \% $V_N$ & $V_L$ (V) & $I_L$ (A) & $P=W_1+W_2$ (W) & $n$
 \subsection{Prueba de vacío}
 Con el motor en delta y sin carga se barrió la tensión según la Tabla~\ref{tab:tensiones}. La Tabla~\ref{tab:vacio} es la Tabla~20 de la guía con dos columnas más, $P_{Cu}$ y la velocidad. A la tensión nominal, \VnomVac~\si{V}, el motor absorbió \InomVac~\si{A} y \PceroNom~\si{W}, con $\cos\theta=\FPnomVac$. Para $V\geq\SI{98}{V}$ el vatímetro $W_2$ marcó negativo, lo que corresponde a $\cos\theta<0{,}5$. Las Figs.~\ref{fig:vacioP} y~\ref{fig:vacioI} son las gráficas que pide la guía, y la Fig.~\ref{fig:vacioV2} separa las pérdidas con la recta de \eqref{eq:pmfe}: el intercepto da $P_m\approx\Pmec$~\si{W} y, a tensión nominal, $P_{fe}\approx\PfeNom$~\si{W}.
 
-\begin{table*}[!t]
+\begin{table}[!t]
 \centering
 \caption{Simulación: prueba de vacío del motor 8221 en delta (Tabla 20 adaptada; $R_{est}=\SI{14}{\ohm}$)}
 \label{tab:vacio}
-\footnotesize
+\scriptsize
+\setlength{\tabcolsep}{2.2pt}
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{@{}ccccccccc@{}}
 \toprule
 $V_{CA}$ (V) & $I_{CA}$ (A) & $P_{W1}$ (W) & $P_{W2}$ (W) & $P_0$ (W) & $P_{Cu}$ (W) & $P_m+P_{fe}$ (W) & $\cos\theta$ & $n$ (\si{\rpm}) \\
 \midrule
 \csname @@input\endcsname calculos/salidas/tab_vacio.tex
 \bottomrule
-\end{tabular}
-\end{table*}
+\end{tabular}}
+\end{table}
 
-\begin{figure}[!t]
+\begin{figure}[!tb]
 \centering
 \begin{tikzpicture}
 \begin{axis}[lab,xlabel={$V_{CA}$ (V)},ylabel={Potencia (W)},legend pos=north west,ymin=0]
@@ -531,7 +535,7 @@ $V_{CA}$ (V) & $I_{CA}$ (A) & $P_{W1}$ (W) & $P_{W2}$ (W) & $P_0$ (W) & $P_{Cu}$
 \label{fig:vacioP}
 \end{figure}
 
-\begin{figure}[!t]
+\begin{figure}[!tb]
 \centering
 \begin{tikzpicture}
 \begin{axis}[lab,width=0.86\columnwidth,xlabel={$V_{CA}$ (V)},ylabel={$I_{CA}$ (A)},
@@ -548,7 +552,7 @@ $V_{CA}$ (V) & $I_{CA}$ (A) & $P_{W1}$ (W) & $P_{W2}$ (W) & $P_0$ (W) & $P_{Cu}$
 \label{fig:vacioI}
 \end{figure}
 
-\begin{figure}[!t]
+\begin{figure}[!tb]
 \centering
 \begin{tikzpicture}
 \begin{axis}[lab,xlabel={$V_{CA}^2$ (V$^2$)},ylabel={$P_m+P_{fe}$ (W)},legend pos=south east,
@@ -565,11 +569,12 @@ $V_{CA}$ (V) & $I_{CA}$ (A) & $P_{W1}$ (W) & $P_{W2}$ (W) & $P_0$ (W) & $P_{Cu}$
 \subsection{Prueba de carga}
 Con el motor en delta a \SI{120}{V} se aumentó el par del dinamómetro por pasos y, en cada paso, se reajustó la fuente para devolver la tensión a \SI{120}{V}, como pide la guía. La prueba terminó al pasar la corriente nominal en delta, \LVIfD~\si{A}. La Tabla~\ref{tab:carga} es la Tabla~21 adaptada, con $P_{out}=\tau\omega$; ese valor coincide con el medidor de potencia mecánica de la interfaz con diferencias menores que \CerrPm~\si{W}. Con corriente nominal (\CnomI~\si{A}) el motor entregó \CnomPout~\si{W} a \Cnomn~\si{\rpm}, con $\tau=\CnomT$~\si{N.m}, $s=\Cnoms$~\% y $\eta=\Cnometa$~\% (Fig.~\ref{fig:sima2}b). La Fig.~\ref{fig:curvascarga} presenta las gráficas que pide la guía.
 
-\begin{table*}[!t]
+\begin{table}[!t]
 \centering
 \caption{Simulación: prueba de carga del motor 8221 en delta a \SI{120}{V} (Tabla 21 adaptada)}
 \label{tab:carga}
-\footnotesize
+\scriptsize
+\setlength{\tabcolsep}{2.2pt}
 \begin{tabular}{@{}ccccccccc@{}}
 \toprule
 $I$ (A) & Carga (\%) & $\tau$ (N\,m) & $n$ (\si{\rpm}) & $P_{in}$ (W) & $P_{out}$ (W) & $\eta$ (\%) & $s$ (\%) & $\cos\theta$ \\
@@ -577,7 +582,7 @@ $I$ (A) & Carga (\%) & $\tau$ (N\,m) & $n$ (\si{\rpm}) & $P_{in}$ (W) & $P_{out}
 \csname @@input\endcsname calculos/salidas/tab_carga.tex
 \bottomrule
 \end{tabular}
-\end{table*}
+\end{table}
 
 \begin{figure*}[!t]
 \centering
@@ -587,41 +592,41 @@ $I$ (A) & Carga (\%) & $\tau$ (N\,m) & $n$ (\si{\rpm}) & $P_{in}$ (W) & $P_{out}
 \label{fig:sima2}
 \end{figure*}
 
-\begin{figure}[!t]
+\begin{figure}[!tb]
 \centering
 \subfloat[Velocidad contra par.]{%
 \begin{tikzpicture}
-\begin{axis}[lab,width=0.52\columnwidth,height=0.48\columnwidth,xlabel={$\tau$ (N\,m)},ylabel={$n$ (\si{\rpm})}]
+\begin{axis}[lab,width=0.52\columnwidth,height=0.42\columnwidth,xlabel={$\tau$ (N\,m)},ylabel={$n$ (\si{\rpm})}]
 \addplot+[mark=*,thick] table[x=tau,y=n]{calculos/salidas/carga.dat};
 \end{axis}
 \end{tikzpicture}}\hfill
 \subfloat[Velocidad contra corriente.]{%
 \begin{tikzpicture}
-\begin{axis}[lab,width=0.52\columnwidth,height=0.48\columnwidth,xlabel={$I$ (A)},ylabel={$n$ (\si{\rpm})}]
+\begin{axis}[lab,width=0.52\columnwidth,height=0.42\columnwidth,xlabel={$I$ (A)},ylabel={$n$ (\si{\rpm})}]
 \addplot+[mark=*,thick] table[x=I,y=n]{calculos/salidas/carga.dat};
 \end{axis}
 \end{tikzpicture}}\\
 \subfloat[Eficiencia contra par.]{%
 \begin{tikzpicture}
-\begin{axis}[lab,width=0.52\columnwidth,height=0.48\columnwidth,xlabel={$\tau$ (N\,m)},ylabel={$\eta$ (\%)},ymin=0]
+\begin{axis}[lab,width=0.52\columnwidth,height=0.42\columnwidth,xlabel={$\tau$ (N\,m)},ylabel={$\eta$ (\%)},ymin=0]
 \addplot+[mark=*,thick] table[x=tau,y=eta]{calculos/salidas/carga.dat};
 \end{axis}
 \end{tikzpicture}}\hfill
 \subfloat[Eficiencia contra $P_{out}$.]{%
 \begin{tikzpicture}
-\begin{axis}[lab,width=0.52\columnwidth,height=0.48\columnwidth,xlabel={$P_{out}$ (W)},ylabel={$\eta$ (\%)},ymin=0]
+\begin{axis}[lab,width=0.52\columnwidth,height=0.42\columnwidth,xlabel={$P_{out}$ (W)},ylabel={$\eta$ (\%)},ymin=0]
 \addplot+[mark=*,thick] table[x=Pout,y=eta]{calculos/salidas/carga.dat};
 \end{axis}
 \end{tikzpicture}}\\
 \subfloat[Deslizamiento contra $P_{out}$.]{%
 \begin{tikzpicture}
-\begin{axis}[lab,width=0.52\columnwidth,height=0.48\columnwidth,xlabel={$P_{out}$ (W)},ylabel={$s$ (\%)},ymin=0]
+\begin{axis}[lab,width=0.52\columnwidth,height=0.42\columnwidth,xlabel={$P_{out}$ (W)},ylabel={$s$ (\%)},ymin=0]
 \addplot+[mark=*,thick] table[x=Pout,y=s]{calculos/salidas/carga.dat};
 \end{axis}
 \end{tikzpicture}}\hfill
 \subfloat[Factor de potencia contra $P_{out}$.]{%
 \begin{tikzpicture}
-\begin{axis}[lab,width=0.52\columnwidth,height=0.48\columnwidth,xlabel={$P_{out}$ (W)},ylabel={$\cos\theta$}]
+\begin{axis}[lab,width=0.52\columnwidth,height=0.42\columnwidth,xlabel={$P_{out}$ (W)},ylabel={$\cos\theta$}]
 \addplot+[mark=*,thick] table[x=Pout,y=fp]{calculos/salidas/carga.dat};
 \end{axis}
 \end{tikzpicture}}
