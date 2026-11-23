@@ -85,7 +85,7 @@ Analizar el comportamiento de los motores de inducción trifásicos de jaula de 
 \item Separar las pérdidas en el cobre, en el hierro y mecánicas a partir de la prueba de vacío, y comprobar que su suma es la potencia absorbida en vacío.
 \item Obtener las curvas de velocidad, corriente, eficiencia y deslizamiento del motor de jaula en la prueba de carga, y calcular su regulación de velocidad.
 \item Estimar los parámetros de la rama de magnetización del circuito equivalente.
-\item Documentar los montajes en LVSIM--LabVolt y en el banco físico, verificando que ningún ensayo supere los límites nominales de las máquinas.
+\item Documentar las conexiones y los montajes en LVSIM--LabVolt, verificando que ningún ensayo supere los límites nominales de las máquinas.
 \end{itemize}
 
 % ===========================================================================
@@ -422,28 +422,6 @@ En todas las pruebas el estator se alimenta desde la salida trifásica variable 
 \item \textbf{Vacío y carga:} estator en delta, un amperímetro en cada línea, $W_1$ con su bobina de corriente en $L_1$ y su bobina de tensión entre $L_1$ y $L_3$, y $W_2$ con su bobina de corriente en $L_2$ y tensión entre $L_2$ y $L_3$. En la prueba de carga el eje se acopla al freno, cuyo devanado se alimenta desde la salida de CC con un amperímetro en serie.
 \end{itemize}
 
-\subsection{Montajes físicos}
-\IfFileExists{figuras/montajes/montajes.pdf}{La Fig.~\ref{fig:montajes} muestra}{Se preparan} los montajes principales sobre los equipos del laboratorio, uno por actividad: la medida de resistencia, la puesta en operación del motor de rotor devanado, la puesta en operación del motor de jaula y las pruebas de vacío y de carga con el freno. Muestran las conexiones de potencia y de los instrumentos descritas arriba.
-
-\IfFileExists{figuras/montajes/montajes.pdf}{%
-\begin{figure*}[p]
-\centering
-\subfloat[Resistencia de los devanados.]{\includegraphics[width=0.48\textwidth,page=1]{figuras/montajes/montajes.pdf}}\hfill
-\subfloat[Puesta en operación, rotor devanado.]{\includegraphics[width=0.48\textwidth,page=2]{figuras/montajes/montajes.pdf}}\\
-\subfloat[Puesta en operación, jaula DL\,1021.]{\includegraphics[width=0.48\textwidth,page=3]{figuras/montajes/montajes.pdf}}\hfill
-\subfloat[Vacío y carga con freno.]{\includegraphics[width=0.48\textwidth,page=4]{figuras/montajes/montajes.pdf}}
-\caption{Montajes de la práctica sobre los equipos del laboratorio.}
-\label{fig:montajes}
-\end{figure*}}{%
-\ifborrador
-\begin{figure*}[p]
-\centering
-\fbox{\parbox[c][0.8\textheight][c]{0.95\textwidth}{\centering\color{red} Montajes físicos (PDF de Simón)}}
-\caption{Montajes de la práctica sobre los equipos del laboratorio.}
-\label{fig:montajes}
-\end{figure*}
-\fi}
-
 % ===========================================================================
 \section{Simulación en LabVolt}
 
@@ -699,10 +677,6 @@ La simulación en LVSIM confirmó cualitativamente lo previsto. El sentido de gi
 En vacío la corriente es principalmente de magnetización y el factor de potencia es bajo. La potencia absorbida se separó en pérdidas en el cobre, mecánicas y en el hierro, cuya suma coincide con $P_0$, como plantea la guía. Con carga nominal, el motor simulado entregó \CnomPout~\si{W} con deslizamiento de \Cnoms~\%, eficiencia de \Cnometa~\% y regulación de velocidad de \CRV~\%. Su velocidad casi constante y su ajuste automático a la carga explican por qué el motor de jaula es el más usado en la industria.
 
 La diferencia de escala entre el 8221 de LVSIM y el DL\,1021 indica que en el banco físico las corrientes y potencias serán varias veces mayores, la resistencia por fase menor y la velocidad cercana a \SI{3600}{\rpm}. En todos los ensayos, conectar la tierra de protección, energizar en forma gradual y modificar el cableado solo con la fuente apagada son condiciones indispensables para trasladar los montajes al banco físico.
-
-% ===========================================================================
-\section{Uso de inteligencia artificial}
-\nota{Pendiente: redactar según lo que indique Simón.}
 
 % ===========================================================================
 \begin{thebibliography}{99}
