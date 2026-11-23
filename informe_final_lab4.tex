@@ -103,9 +103,10 @@ La Tabla~\ref{tab:vn} reúne las lecturas, con el deslizamiento y la frecuencia 
 \caption{Velocidad del motor en delta al reducir la tensión de línea}
 \label{tab:vn}
 \footnotesize
+\setlength{\tabcolsep}{4pt}
 \begin{tabular}{@{}ccccc@{}}
 \toprule
-$V_L$ (V) & $V_L/220$ (\%) & $n$ (\si{\rpm}) & $s$ (\%) & $f_r$ (Hz) \\
+$V_L$ (V) & $V_L/220$ (\%) & $n$ (\si{\rpm}) & $s$ (\%) & $f_r=(s/100)\cdot60$ (Hz) \\
 \midrule
 \csname @@input\endcsname calculos/salidas/clase_tabla.tex
 \bottomrule
