@@ -1,0 +1,11 @@
+Preinforme Lab 4 - Maquinas de induccion (LaTeX, clase IEEEtran)
+
+Compilar:  latexmk -pdf informe_lab4.tex   (o pdflatex dos veces)
+Paquetes: IEEEtran, babel (spanish), siunitx, pgfplots, subfig, booktabs, hyperref.
+
+Para agregar los montajes fisicos:
+  1. Guardar el PDF de 4 paginas como figuras/montajes/montajes.pdf
+     (pag. 1 resistencia, 2 rotor devanado, 3 jaula DL 1021, 4 vacio y carga).
+     El informe lo detecta solo y muestra la figura.
+Para agregar una tabla propia: guardarla como tablas/tabla_usuario.tex.
+La seccion "Uso de inteligencia artificial" esta pendiente de redactar (al final del .tex).
