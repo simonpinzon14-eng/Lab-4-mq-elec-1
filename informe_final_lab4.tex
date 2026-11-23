@@ -1,0 +1,228 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla,es-noshorthands,es-nodecimaldot]{babel}
+\spanishplainpercent
+\usepackage{amsmath,amssymb}
+\usepackage{icomma}
+\usepackage[output-decimal-marker={,},group-minimum-digits=5,per-mode=symbol]{siunitx}
+\DeclareSIUnit{\rpm}{min^{-1}}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.17}
+\usepackage{graphicx}
+\usepackage{placeins}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{xurl}
+\usepackage{hyperref}
+\hypersetup{colorlinks=false,pdfborder={0 0 0}}
+
+\input{calculos/salidas/clase.tex}
+
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\textfraction}{0.08}
+\renewcommand{\floatpagefraction}{0.75}
+
+\pgfplotsset{
+  lab/.style={width=\columnwidth,height=0.62\columnwidth,grid=major,
+    grid style={gray!25},tick label style={font=\footnotesize},
+    label style={font=\footnotesize},legend style={font=\scriptsize},
+    /pgf/number format/use comma,/pgf/number format/1000 sep={}},
+}
+
+\begin{document}
+
+\title{Informe de Laboratorio: Práctica N\textsuperscript{o}~4---Máquinas de Inducción}
+
+\author{\IEEEauthorblockN{Simón David Pinzón Navarro, Luisa Fernanda Marín Romero, Juan Andrés Merchán Palencia,\\
+Johan Emanuel Pino Giraldo y Cristian Manuel Marquez Luna}
+\IEEEauthorblockA{Programa de Ingeniería Eléctrica\\
+Universidad del Norte\\
+Barranquilla, Colombia}}
+
+\maketitle
+
+\begin{abstract}
+Este informe describe lo realizado en la sesión de la Práctica 4 de Máquinas Eléctricas I sobre el motor de inducción trifásico. Se registró la velocidad del motor al reducir la tensión de línea en conexión delta, de \SI{220}{V} a \SI{170}{V} con once lecturas, y se tomó una lectura adicional en estrella a \SI{380}{V}. Con una reducción de tensión del \ClVred~\%, la velocidad se mantuvo entre \ClMin\ y \ClMax~\si{\rpm}, con media de \ClMean~\si{\rpm} y desviación estándar de \ClSd~\si{\rpm}. El ajuste lineal de la velocidad contra la tensión dio una pendiente de \ClSlope~$\pm$~\ClSlopeSE~\si{\rpm/V}, es decir, sin tendencia distinguible de cero. Esto confirma que la velocidad del campo giratorio no depende de la tensión sino de la frecuencia y del número de polos, como se explicó en clase. También se documenta la prueba del variador de frecuencia Yaskawa GA500, con el que se arrancó, controló y detuvo un motor desde un computador, y la corrección de la alarma oPE10 que impedía el arranque.
+\end{abstract}
+
+\begin{IEEEkeywords}
+motor de inducción, velocidad sincrónica, deslizamiento, tensión, frecuencia, variador de frecuencia
+\end{IEEEkeywords}
+
+\section{Introducción}
+La Práctica 4 estudia los motores de inducción trifásicos \cite{guia}. En el preinforme \cite{preinforme} se prepararon los fundamentos, el análisis de las placas de los motores del banco y los cálculos previos de las pruebas, y se reprodujeron las actividades en LVSIM--LabVolt. Este informe recoge lo que se hizo y se midió en la sesión de clase: una tabla de velocidad contra tensión, una lectura en estrella y la prueba del variador de frecuencia.
+
+La pregunta que guía la sesión es de qué depende la velocidad de un motor de inducción. Según la teoría \cite{chapman,fraile}, la velocidad del campo giratorio depende solo de la frecuencia y del número de polos, de modo que cambiar la tensión no debería modificar la velocidad de forma apreciable. Las mediciones permiten comprobarlo.
+
+\section{Objetivos}
+\subsection{Objetivo general}
+Verificar experimentalmente que la velocidad de un motor de inducción trifásico no depende de la tensión de alimentación, e identificar los parámetros que sí la determinan.
+
+\subsection{Objetivos específicos}
+\begin{itemize}
+\item Registrar la velocidad del motor al reducir la tensión de línea en conexión delta.
+\item Calcular el deslizamiento y la frecuencia del rotor para cada lectura, y evaluar la tendencia de la velocidad con la tensión.
+\item Calcular la velocidad sincrónica para distintos números de polos y frecuencias.
+\item Documentar el control remoto del motor con el variador Yaskawa GA500 y la corrección de la alarma oPE10.
+\end{itemize}
+
+\section{Fundamentos}
+\subsection{Velocidad sincrónica y deslizamiento}
+Las tres corrientes del estator, desfasadas \SI{120}{\degree} eléctricos, producen un campo magnético giratorio de velocidad
+\begin{equation}
+n_s=\frac{120\,f}{P},
+\label{eq:ns}
+\end{equation}
+con $f$ la frecuencia de la red en hertz y $P$ el número de polos \cite{chapman}. A \SI{60}{Hz} resultan \SI{3600}{\rpm} con dos polos, \SI{1800}{\rpm} con cuatro y \SI{1200}{\rpm} con seis. El rotor gira a una velocidad algo menor, $n_r$, y la diferencia se expresa con el deslizamiento:
+\begin{equation}
+s=\frac{n_s-n_r}{n_s},\qquad n_r=(1-s)\,n_s,\qquad f_r=s\,f.
+\label{eq:s}
+\end{equation}
+La velocidad $n_s$ solo depende de $f$ y de $P$. La tensión no aparece en \eqref{eq:ns}.
+
+\subsection{Efecto de la tensión}
+El par que produce el motor es proporcional al cuadrado de la tensión, $\tau\propto V^2$ \cite{chapman}. Si la carga mecánica no cambia, al bajar la tensión el motor necesita un deslizamiento mayor para producir el mismo par, y se cumple aproximadamente $s\propto1/V^2$. En vacío el deslizamiento ya es muy pequeño, por lo que el cambio de velocidad que se espera al reducir la tensión es de unas pocas revoluciones por minuto.
+
+\section{Equipos y procedimiento}
+\subsection{Motor y conexiones}
+Se trabajó con un motor de inducción trifásico con los seis terminales del estator accesibles, de modo que se puede conectar en estrella o en delta. Las velocidades medidas, cercanas a \SI{3600}{\rpm}, corresponden a una máquina de dos polos a \SI{60}{Hz}. En delta cada devanado queda entre dos líneas y la tensión de línea es la del devanado; en estrella queda entre línea y neutro y la tensión de línea es $\sqrt3$ veces la del devanado.
+
+\subsection{Barrido de tensión}
+En conexión delta, con \SI{220}{V} como tensión de línea nominal según el registro del grupo, se redujo la tensión de línea de \SI{220}{V} a \SI{170}{V} en pasos de \SI{5}{V} y en cada paso se anotó la velocidad del motor. En el tablero se planteó también un barrido en estrella desde \SI{380}{V} hasta \SI{300}{V} en pasos de \SI{10}{V}; de ese barrido quedó registrada la velocidad en \SI{380}{V}, \SI{3580}{\rpm}.
+
+\subsection{Variador de frecuencia}
+Se usó un variador Yaskawa GA500, referencia GA50U2082ABA, con alimentación trifásica de \SI{200}{}--\SI{240}{V}, y el programa Yaskawa DriveWizard Industrial en un computador portátil, conectado por USB (puerto virtual COM4). El teclado del variador estaba dañado, de modo que toda la operación se hizo desde el computador. En clase se explicó que el variador rectifica la tensión de entrada a un bus de corriente continua y la convierte de nuevo en tensión trifásica de frecuencia variable, que es lo que permite variar $n_s$ según \eqref{eq:ns}.
+
+\section{Resultados}
+\subsection{Velocidad contra tensión en delta}
+La Tabla~\ref{tab:vn} reúne las lecturas, con el deslizamiento y la frecuencia del rotor calculados con \eqref{eq:s}, $n_s=\ClNs~\si{\rpm}$ y $f=\SI{60}{Hz}$. La Fig.~\ref{fig:vn} las muestra contra la tensión.
+
+\begin{table}[!tb]
+\centering
+\caption{Velocidad del motor en delta al reducir la tensión de línea}
+\label{tab:vn}
+\footnotesize
+\begin{tabular}{@{}ccccc@{}}
+\toprule
+$V_L$ (V) & $V_L/220$ (\%) & $n$ (\si{\rpm}) & $s$ (\%) & $f_r$ (Hz) \\
+\midrule
+\csname @@input\endcsname calculos/salidas/clase_tabla.tex
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[!tb]
+\centering
+\begin{tikzpicture}
+\begin{axis}[lab,xlabel={$V_L$ (V)},ylabel={$n$ (\si{\rpm})},xmin=165,xmax=225,ymin=3585,ymax=3610,
+  legend pos=south east,x dir=reverse]
+\addplot+[only marks,mark=*,thick] table[x=V,y=N]{calculos/salidas/clase.dat};
+\addplot+[no marks,thick,dashed,red] coordinates {(165,3600)(225,3600)};
+\addplot+[no marks,thick,dotted,black] coordinates {(165,3596.65)(225,3596.65)};
+\legend{Medida,$n_s=\SI{3600}{\rpm}$,Media}
+\end{axis}
+\end{tikzpicture}
+\caption{Velocidad contra tensión de línea en delta. El eje vertical está ampliado a \SI{25}{\rpm}, solo \SI{0,7}{\percent} de $n_s$.}
+\label{fig:vn}
+\end{figure}
+
+Las \Cn\ lecturas están entre \ClMin\ y \ClMax~\si{\rpm}, un rango de \ClRange~\si{\rpm}, que es el \ClRangePct~\% de $n_s$, mientras que la tensión se redujo un \ClVred~\%. La media es \ClMean~\si{\rpm} y la desviación estándar, \ClSd~\si{\rpm}. El ajuste por mínimos cuadrados da una pendiente de \ClSlope~$\pm$~\ClSlopeSE~\si{\rpm/V} y un coeficiente de correlación de \ClR. La pendiente es unas doce veces menor que su incertidumbre, por lo que no se distingue de cero. Entre \SI{220}{V} y \SI{170}{V} la velocidad pasó de \num{3591,7} a \num{3593,1}~\si{\rpm}, una diferencia de \ClDN~\si{\rpm} dentro de la dispersión.
+
+\subsection{Lectura en estrella}
+En estrella a \SI{380}{V} se leyeron \SI{3580}{\rpm}, que corresponde a un deslizamiento de \ClSlipY~\% y a una frecuencia del rotor de \ClFrY~\si{Hz}. El barrido previsto hasta \SI{300}{V} implica una reducción de tensión de $(380-300)/380=\ClVredPizarra$~\%, similar a la del barrido en delta, pero sus velocidades no quedaron registradas, por lo que no se analizan.
+
+\subsection{Velocidad sincrónica según polos y frecuencia}
+La Tabla~\ref{tab:ns} da la velocidad sincrónica calculada con \eqref{eq:ns} para los números de polos tratados en clase y para frecuencias dentro del rango de \SI{0}{}--\SI{66}{Hz} del variador. Es un cálculo, no una medición.
+
+\begin{table}[!tb]
+\centering
+\caption{Velocidad sincrónica calculada, $n_s$ (\si{\rpm})}
+\label{tab:ns}
+\footnotesize
+\begin{tabular}{@{}cccccccc@{}}
+\toprule
+$P$ & \SI{20}{Hz} & \SI{30}{Hz} & \SI{40}{Hz} & \SI{50}{Hz} & \SI{60}{Hz} & \SI{66}{Hz} \\
+\midrule
+2 & 1200 & 1800 & 2400 & 3000 & 3600 & 3960 \\
+4 & 600 & 900 & 1200 & 1500 & 1800 & 1980 \\
+6 & 400 & 600 & 800 & 1000 & 1200 & 1320 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[!tb]
+\centering
+\begin{tikzpicture}
+\begin{axis}[lab,xlabel={$f$ (Hz)},ylabel={$n_s$ (\si{\rpm})},xmin=0,xmax=66,ymin=0,legend pos=north west]
+\addplot+[no marks,thick] coordinates {(0,0)(66,3960)};
+\addplot+[no marks,thick,dashed] coordinates {(0,0)(66,1980)};
+\addplot+[no marks,thick,dotted] coordinates {(0,0)(66,1320)};
+\legend{$P=2$,$P=4$,$P=6$}
+\end{axis}
+\end{tikzpicture}
+\caption{Velocidad sincrónica contra frecuencia para dos, cuatro y seis polos.}
+\label{fig:ns}
+\end{figure}
+
+\subsection{Prueba del variador GA500}
+\emph{Situación inicial.} Al intentar arrancar el motor desde el panel de control de DriveWizard, el estado era ``Drive not ready to run!'', con los indicadores Run y Ready apagados y la frecuencia y la corriente de salida en cero. Las fuentes de mando estaban en teclado ($b1\text{-}01=0$ y $b1\text{-}02=0$).
+
+\emph{Diagnóstico.} Se revisaron la falta de alimentación principal, las alarmas de bloqueo (Hbb, bb, Uv), el modo de programación y la selección de las fuentes de mando. El resultado fue la alarma \textbf{oPE10}, un error en los datos del patrón V/f. Aparece cuando las frecuencias del grupo E1 no cumplen
+\begin{equation}
+E1\text{-}09\le E1\text{-}07<E1\text{-}06\le E1\text{-}11\le E1\text{-}04,
+\label{eq:e1}
+\end{equation}
+donde E1-04 es la frecuencia máxima de salida, E1-06 la frecuencia base, E1-07 la frecuencia media, E1-09 la mínima y E1-11 una frecuencia media adicional (0 si está deshabilitada). Los valores encontrados fueron E1-07 de \SI{10}{Hz} y E1-09 de \SI{15}{Hz}. La frecuencia mínima superaba a la media y violaba \eqref{eq:e1}, por lo que el variador bloqueaba el arranque.
+
+\emph{Solución.} En DriveWizard, en E Motor Parameters, grupo E1, se corrigieron los valores a los recomendados de fábrica, E1-09 de \SI{1,5}{Hz} y E1-07 de \SI{3}{Hz}, y se escribieron al variador con Write Parameters. La alarma desapareció y el variador quedó listo. Si se necesita que el motor no baje de cierta velocidad, lo correcto no es E1-09 sino el límite inferior de referencia d2-02, en porcentaje de E1-04; por ejemplo, con E1-04 de \SI{60}{Hz}, \SI{15}{Hz} equivale a d2-02 de \SI{25}{\percent}.
+
+\emph{Control remoto.} Desde el panel Drive Control se pulsó ON para tomar el control desde el programa, con lo que se activan los indicadores Com.\ Ref y Com.\ Seq; se fijó la referencia de frecuencia, en el rango de \SI{0}{}--\SI{66}{Hz}; con FORWARD el motor arrancó y aceleró hasta la referencia, y con STOP desaceleró y se detuvo. Quedó comprobado que el motor se puede arrancar, controlar y detener desde el computador por USB sin usar el teclado. Para graficar el arranque y la parada se recomendó el Trend Recorder con los canales U1-01 (referencia), U1-02 (frecuencia de salida), U1-03 (corriente) y U1-06 (tensión); en esta sesión no se guardaron curvas.
+
+\section{Análisis}
+\emph{La velocidad no depende de la tensión.} Con una reducción de tensión del \ClVred~\%, la velocidad varió dentro de un rango de \ClRangePct~\% de $n_s$ y sin tendencia: la pendiente del ajuste, \ClSlope~$\pm$~\ClSlopeSE~\si{\rpm/V}, es indistinguible de cero. Esto coincide con \eqref{eq:ns}, donde la tensión no aparece, y con lo explicado en clase: la velocidad de un motor de inducción se cambia con el número de polos o con la frecuencia, no con la tensión.
+
+\emph{Deslizamiento muy pequeño.} El deslizamiento medio fue \ClMeanSlip~\% y sus valores individuales van de \ClSlipMin~\% a \ClSlipMax~\%. Un deslizamiento tan pequeño indica que el motor giraba prácticamente sin carga. Las lecturas no reflejan el deslizamiento de plena carga del motor, que sería de varios por ciento.
+
+\emph{Lecturas por encima de la velocidad sincrónica.} \ClNabove\ de las \Cn\ lecturas superan los \SI{3600}{\rpm}, lo que da deslizamientos negativos. Un motor que solo recibe energía de la red no puede superar la velocidad sincrónica sin un par externo que lo impulse. Se atribuyen a la incertidumbre del instrumento de medida y a pequeñas variaciones de la frecuencia de la red; con la información disponible no se puede determinar cuál pesa más. La dispersión observada, de \ClSd~\si{\rpm}, es una cota práctica de esa incertidumbre.
+
+\emph{Efecto esperado de la tensión.} Si el deslizamiento a \SI{220}{V} fuera el medio, \ClMeanSlip~\%, y variara como $1/V^2$, al bajar a \SI{170}{V} se multiplicaría por \ClEstFactor\ y la velocidad bajaría unas \ClEstDN~\si{\rpm}. Esa variación es menor que la dispersión de las lecturas, de modo que no podía distinguirse con estas mediciones. Es una estimación, no un resultado medido.
+
+\emph{Estrella y delta.} La lectura en estrella a \SI{380}{V} (\SI{3580}{\rpm}, $s=\ClSlipY$~\%) es de otra prueba y de otra conexión, por lo que no es comparable con la serie en delta. Sirve como referencia de que el motor también opera cerca de $n_s$ en estrella con la tensión de línea mayor.
+
+\emph{Variador.} Como $n_s=120f/P$, el variador permite regular la velocidad cambiando $f$ sin cambiar el número de polos; según la Tabla~\ref{tab:ns}, un motor de dos polos cubre entre \SI{1200}{\rpm} y \SI{3960}{\rpm} entre \SI{20}{Hz} y \SI{66}{Hz}. La alarma oPE10 muestra que los parámetros del patrón V/f deben cumplir \eqref{eq:e1}.
+
+\section{Cuestionario}
+\emph{a) Principio de funcionamiento y par.} Las tres corrientes del estator producen un campo giratorio que corta las barras del rotor e induce en ellas un voltaje. Como el rotor está en cortocircuito, circula una corriente que interactúa con el campo y produce un par, $\tau_{ind}=k\,B_R\times B_S$, que arrastra al rotor en el sentido del campo \cite{chapman}.
+
+\emph{b) Deslizamiento.} Es la diferencia relativa entre la velocidad del campo y la del rotor, $s=(n_s-n_r)/n_s$, ecuación \eqref{eq:s}. En los datos tomados varió entre \ClSlipMin\ y \ClSlipMax~\%.
+
+\emph{c) Mayor resistencia.} El motor de rotor devanado, porque su rotor tiene bobinas de muchas espiras de alambre más delgado unidas a través de anillos y escobillas, mientras que la jaula son barras gruesas en cortocircuito \cite{preinforme}.
+
+\emph{d) Comportamiento de jaula y rotor devanado.} En general es similar, porque ambos se basan en el mismo campo giratorio. La diferencia es que el rotor devanado permite insertar resistencia externa para aumentar el par de arranque y variar la velocidad, a costa de más costo y mantenimiento.
+
+\emph{e) Velocidad sincrónica.} A $n_s$ no hay movimiento relativo entre el campo y el rotor, no se induce voltaje, no hay corriente rotórica ni par. Como siempre existe fricción y ventilación, el motor necesita $s>0$ para producir el par que las vence. Los valores por encima de $n_s$ de la Tabla~\ref{tab:vn} no son una operación real sino error de medida.
+
+\emph{f) Características que hacen al motor de jaula el más usado.} Según las curvas de la simulación del preinforme \cite{preinforme}: (1) su velocidad es casi constante, cambia menos del \SI{6}{\percent} entre vacío y plena carga; (2) su eficiencia y su factor de potencia mejoran con la carga, este último de unos \num{0,37} en vacío a unos \num{0,80} con corriente nominal; (3) se ajusta solo a la carga, aumentando el deslizamiento, sin control externo y sin escobillas ni anillos. Estas curvas son simuladas, no medidas en esta sesión.
+
+\emph{g) Frecuencia eléctrica del rotor.} Es proporcional al deslizamiento, $f_r=s\,f$: con el rotor detenido ($s=1$) es igual a la de la red y disminuye a medida que el motor acelera. Con los deslizamientos de la Tabla~\ref{tab:vn}, $f_r$ fue inferior a \SI{0,16}{Hz} en valor absoluto.
+
+\section{Conclusiones}
+La velocidad del motor en delta se mantuvo entre \ClMin\ y \ClMax~\si{\rpm} al reducir la tensión de \SI{220}{V} a \SI{170}{V}, un \ClVred~\%, sin tendencia con la tensión: la pendiente fue de \ClSlope~$\pm$~\ClSlopeSE~\si{\rpm/V}. Esto confirma que la tensión no fija la velocidad, que depende de la frecuencia y del número de polos según $n_s=120f/P$.
+
+El deslizamiento medio fue de \ClMeanSlip~\%, propio de un motor casi sin carga. Tres lecturas superaron la velocidad sincrónica, lo que se atribuye a la incertidumbre de la medida. Los resultados no permiten caracterizar el motor con carga, que requiere las pruebas de vacío y de carga con el freno.
+
+El variador GA500 permitió arrancar, controlar y detener el motor desde el computador. La alarma oPE10 se debió a que la frecuencia mínima del patrón V/f (\SI{15}{Hz}) superaba a la media (\SI{10}{Hz}), y se resolvió al restituir los valores recomendados.
+
+\section{Uso de inteligencia artificial}
+En la elaboración de este informe se utilizó el modelo de inteligencia artificial Claude Sonnet~5.5, de Anthropic, como apoyo en la redacción del texto y en la elaboración de las gráficas.
+
+\begin{thebibliography}{99}
+\bibitem{chapman} S.~J. Chapman, \emph{Máquinas eléctricas}, 5.\textsuperscript{a} ed. Ciudad de México, México: McGraw-Hill, 2012.
+\bibitem{fraile} J.~Fraile Mora, \emph{Máquinas eléctricas}, 6.\textsuperscript{a} ed. Madrid, España: McGraw-Hill, 2008.
+\bibitem{guia} Universidad del Norte, ``Práctica N.\textsuperscript{o} 4: Máquinas de inducción,'' guía del Laboratorio de Máquinas Eléctricas I.
+\bibitem{preinforme} S.~D. Pinzón Navarro \emph{et~al.}, ``Preinforme de laboratorio: Práctica N.\textsuperscript{o} 4---Máquinas de inducción,'' Universidad del Norte, 2026.
+\end{thebibliography}
+
+\end{document}
